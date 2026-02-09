@@ -43,11 +43,11 @@ class TcpServer:
             pass
         self._package_listener_thread.start()
         self._logger.info(f"Server listening on [{self._host or 'localhost'}:{self._port}]")
-        self._connection_listener()
+        self._main_loop()
 
 
-    def _connection_listener(self):
-        """Loop listening for new client connections
+    def _main_loop(self):
+        """Loop listening for new client connections and cleaning up game sessions
         """
         while self._is_server_running:
             try:
