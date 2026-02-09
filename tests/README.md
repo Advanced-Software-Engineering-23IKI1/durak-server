@@ -13,7 +13,7 @@ Integration tests and test clients require a config.ini file located at `tests/c
 The config.ini file provides configuration options for the test client and logging systems.
 Integration tests can be run in one of two modes:
 
-- non advanced: requires a server address of an already running bbc server. This can be either local or remote (in the cloud).
+- non advanced: requires a server address of an already running Durak server. This can be either local or remote (in the cloud).
 - advanced: launches a local server at the address and port specified in the config.
 
 It is recommended to run the integration tests in both modes as the advanced mode provides the benefit of being able to check the internal server state while the non advanced mode provides the advantage of being able to make sure the code works as expected in a enviroment with possible high latency.

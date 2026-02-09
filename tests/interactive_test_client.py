@@ -20,9 +20,6 @@ sys.path.insert(0, os.path.join(durak_server_DIR))
 sys.path.insert(0, os.path.join(pathlib.Path(__file__).parent.parent))
 
 import durak_server
-from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
-from durak_server.packages import Decoder, PackageParsingExceptionPackage
-from durak_server._typing import BBCPackage
 
 
 def is_optional_type(tp: Any):
