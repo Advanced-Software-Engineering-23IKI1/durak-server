@@ -6,12 +6,12 @@ import os
 import time
 import pathlib
 
-BBC_SERVER_DIR = pathlib.Path(__file__).parent.parent / "src"
+durak_server_DIR = pathlib.Path(__file__).parent.parent / "src"
 
-sys.path.insert(0, os.path.join(BBC_SERVER_DIR))
+sys.path.insert(0, os.path.join(durak_server_DIR))
 sys.path.insert(0, os.path.join(pathlib.Path(__file__).parent.parent))
 
-from bbc_server.packages import StartGameSessionPackage, ConnectToGameSessionPackage, StatusUpdatePackage, PlayerClicksPackage
+from durak_server.packages import StartGameSessionPackage, ConnectToGameSessionPackage, StatusUpdatePackage, PlayerClicksPackage
 
 IP = str(TEST_CONFIG.get("test_server", "IP")).strip()
 PORT = int(TEST_CONFIG.get("test_server", "PORT").strip())

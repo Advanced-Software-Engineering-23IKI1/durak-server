@@ -14,15 +14,15 @@ import ast
 from tests.utils.logging import TEST_LOGGER
 
 
-BBC_SERVER_DIR = pathlib.Path(__file__).parent.parent / "src"
+durak_server_DIR = pathlib.Path(__file__).parent.parent / "src"
 
-sys.path.insert(0, os.path.join(BBC_SERVER_DIR))
+sys.path.insert(0, os.path.join(durak_server_DIR))
 sys.path.insert(0, os.path.join(pathlib.Path(__file__).parent.parent))
 
-import bbc_server
-from bbc_server.exceptions import InvalidPackageTypeException, InvalidBodyException
-from bbc_server.packages import Decoder, PackageParsingExceptionPackage
-from bbc_server._typing import BBCPackage
+import durak_server
+from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
+from durak_server.packages import Decoder, PackageParsingExceptionPackage
+from durak_server._typing import BBCPackage
 
 
 def is_optional_type(tp: Any):
@@ -60,13 +60,13 @@ class InteractiveTestClient(TcpTestClient):
 
     def _generate_pkg_string(self):
         package_str = "raw string input [-1]; "
-        packages = bbc_server.packages.PACKAGE_DICT
+        packages = durak_server.packages.PACKAGE_DICT
         for idx, package in enumerate(packages.keys()):
             package_str += f"{package} [{idx}]; "
         return package_str
 
     def _package_input_loop(self):
-        packages = bbc_server.packages.PACKAGE_DICT
+        packages = durak_server.packages.PACKAGE_DICT
         while True:
             print("Please select from the list of packages:")
             print(self._generate_pkg_string())

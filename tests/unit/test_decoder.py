@@ -10,9 +10,9 @@ repo_root_dir = here.parent.parent
 # don't like this but unsure how to mitigate except for dev installation in cwd
 sys.path.insert(0, os.path.join(repo_root_dir / "src"))
 
-from bbc_server.packages import *
-from bbc_server.packages import Decoder
-from bbc_server.exceptions import InvalidPackageTypeException, InvalidBodyException
+from durak_server.packages import *
+from durak_server.packages import Decoder
+from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
 from json import JSONDecodeError
 
 
@@ -41,7 +41,7 @@ class DecoderTest(unittest.TestCase):
     def test_005_invalid_nested_body(self):
         """test if Decoder handles a faulty nested body correctly"""
         # using string input as class does structure validation and permits creation of badly structured packages
-        test_str = '{"type": "end-routine", "body": {"score": 17, "is-winner": false, "scoreboard": [{"playername": false}]}}'
+        test_str = '{"type": "lobby-status", "body": {"gamecode": "123456", "players": [{"playername": 1}]}}'
         self.assertRaises(InvalidBodyException, Decoder.deserialize, input_str=test_str)
 
     def test_006_decode_ConnectToGameSessionPackage(self):
@@ -50,53 +50,31 @@ class DecoderTest(unittest.TestCase):
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
-    def test_007_decode_EndRoutinePackage(self):
-        """test decoding the EndRoutinePackage"""
-        test_pkg = EndRoutinePackage(
-            score=17,
-            is_winner=False,
-            scoreboard=[{"playername": "player1", "score": 1000}],
-        )
-        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
-        self.assertTrue(test_pkg == parsed_pkg)
-
-    def test_008_decode_ExceptionPackage(self):
+    def test_007_decode_ExceptionPackage(self):
         """test decoding the ExceptionPackage"""
         test_pkg = ExceptionPackage(name="myException", details={"some_detail": 17})
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
-    def test_009_decode_GameStartPackage(self):
+    def test_008_decode_GameStartPackage(self):
         """test decoding the GameStartPackage"""
         test_pkg = GameStartPackage()
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
-    def test_010_decode_GameUpdatePackage(self):
-        """test decoding the GameUpdatePackage"""
-        test_pkg = GameUpdatePackage(currency=10, score=25, click_modifier=2, passive_gain=0, top_players=[{"playername": "player1", "score": 25}])
-        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
-        self.assertTrue(test_pkg == parsed_pkg)
-
-    def test_011_decode_LobbyStatusPackage(self):
+    def test_009_decode_LobbyStatusPackage(self):
         """test decoding the LobbyStatusPackage"""
         test_pkg = LobbyStatusPackage(gamecode="AE98", players=[{"playername": "player1", "is-ready": True}])
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
-    def test_012_decode_PlayerClicksPackage(self):
-        """test decoding the PlayerClicksPackage"""
-        test_pkg = PlayerClicksPackage(count=14)
-        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
-        self.assertTrue(test_pkg == parsed_pkg)
-
-    def test_012_decode_StartGameSessionPackage(self):
+    def test_010_decode_StartGameSessionPackage(self):
         """test decoding the StartGameSessionPackage"""
         test_pkg = StartGameSessionPackage(playername="player1")
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
-    def test_012_decode_StatusUpdatePackage(self):
+    def test_011_decode_StatusUpdatePackage(self):
         """test decoding the StatusUpdatePackage"""
         test_pkg = StatusUpdatePackage(is_ready=True)
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())

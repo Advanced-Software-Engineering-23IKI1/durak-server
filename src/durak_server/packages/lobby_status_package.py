@@ -1,4 +1,4 @@
-from bbc_server.packages import BasePackage
+from durak_server.packages import BasePackage
 
 class LobbyStatusPackage(BasePackage):
     PACKAGE_TYPE = "lobby-status"
@@ -16,7 +16,7 @@ class LobbyStatusPackage(BasePackage):
             players (list[dict]): list of players with their readiness status
 
         Raises:
-            ValueError: _description_
+            ValueError: on invalid player list
         """
         self.__gamecode = gamecode
         if not self.is_player_list_valid(players):

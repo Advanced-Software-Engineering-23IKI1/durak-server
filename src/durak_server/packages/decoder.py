@@ -1,10 +1,10 @@
-from bbc_server.packages import PACKAGE_DICT
-from bbc_server._typing import BBCPackage
-from bbc_server.exceptions import InvalidPackageTypeException, InvalidBodyException
+from durak_server.packages import PACKAGE_DICT
+from durak_server._typing import GamePackage
+from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
 import json
 
 
-def deserialize(input_str: str) -> BBCPackage:
+def deserialize(input_str: str) -> GamePackage:
     # 1. check for valid JSON
     try:
         parsed_dict = json.loads(input_str)

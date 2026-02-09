@@ -3,7 +3,7 @@ import logging
 import sys
 import pathlib
 from typing import Optional
-from bbc_server import CONFIG
+from durak_server import CONFIG
 import os
 
 

@@ -1,15 +1,15 @@
 from __future__ import annotations
-from bbc_server.packages import StartGameSessionPackage, ConnectToGameSessionPackage, InvalidGameCodeExceptionPackage
-from bbc_server.tcp_client import TcpClient
-from bbc_game.game_session import GameSession
-from bbc_game.game_state import GameState
+from durak_server.packages import StartGameSessionPackage, ConnectToGameSessionPackage, InvalidGameCodeExceptionPackage
+from durak_server.tcp_client import TcpClient
+from durak_server.game_session import GameSession
+from durak_server.game_state import GameState
 from threading import Thread
 import time
 import signal
 import socket
-from bbc_server import Player
+from durak_server import Player
 from typing import Optional
-from bbc_server.server_logging import ServerLogger
+from durak_server.server_logging import ServerLogger
 
 class TcpServer:
     def __init__(self, host: str, port: int):
@@ -144,7 +144,7 @@ class TcpServer:
 
 
 if __name__ == "__main__":
-    from bbc_server import CONFIG
+    from durak_server import CONFIG
     host = CONFIG.get("server", "HOST")
     port = int(CONFIG.get("server", "PORT").strip() or "0")
 

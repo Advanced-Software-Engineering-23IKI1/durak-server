@@ -1,7 +1,7 @@
-import bbc_server
+import durak_server
 
-host = bbc_server.CONFIG.get("server", "HOST")
-port = int(bbc_server.CONFIG.get("server", "PORT").strip() or "0")
+host = durak_server.CONFIG.get("server", "HOST")
+port = int(durak_server.CONFIG.get("server", "PORT").strip() or "0")
 
-server = bbc_server.tcp_server.TcpServer(host, port)
+server = durak_server.tcp_server.TcpServer(host, port)
 server.start()

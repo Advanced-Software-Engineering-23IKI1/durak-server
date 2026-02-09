@@ -1,9 +1,9 @@
 from typing import Optional
 
-class BBCServerException(Exception):
-    """Base Class for all BBC Server Exceptions"""
+class GameServerException(Exception):
+    """Base Class for all Game Server Exceptions"""
 
-class PackageParsingException(BBCServerException):
+class PackageParsingException(GameServerException):
     """Base Class for all Package Parsing Exceptions"""
 
 class InvalidPackageTypeException(PackageParsingException):

@@ -1,12 +1,12 @@
 import socket
 from typing import Optional
-from bbc_server._typing import BBCPackage
-from bbc_server.packages import Decoder, PackageParsingExceptionPackage
-from bbc_server.server_logging import PlayerLogger
+from durak_server._typing import GamePackage
+from durak_server.packages import Decoder, PackageParsingExceptionPackage
+from durak_server.server_logging import PlayerLogger
 from json import JSONDecodeError
 from threading import Thread
 import time
-from bbc_server.exceptions import InvalidPackageTypeException, InvalidBodyException
+from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
 
 class TcpClient:
     PACKET_SEPERATOR = '\x1E'
@@ -126,12 +126,12 @@ class TcpClient:
 
         self._outgoing_queue.append(content)
 
-    def read_package(self, **kwargs) -> Optional[BBCPackage]:
+    def read_package(self, **kwargs) -> Optional[GamePackage]:
         """read a package if available
         If a package is invalid the next package is automatically read.
 
         Returns:
-            Optional[BBCPackage]: input package
+            Optional[GamePackage]: input package
         """
         package = None
         while self.has_content():
@@ -152,10 +152,10 @@ class TcpClient:
 
 
 
-    def send_package(self, package: BBCPackage, **kwargs) -> None:
+    def send_package(self, package: GamePackage, **kwargs) -> None:
         """send package to the Client
 
         Args:
-            package (BBCPackage): package to send
+            package (GamePackage): package to send
         """
         self.send_string(package.to_json())

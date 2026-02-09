@@ -1,4 +1,3 @@
-import durak_server.end_condition
 from durak_server.game_state import GameState
 from durak_server.game_code import generate_game_code, unregister_game_code
 import durak_server.packages
@@ -7,10 +6,9 @@ from durak_server import Player
 from durak_server.server_logging import SessionLogger
 import durak_server
 import time
-import durak_server.configs
+import durak_server.config
 
 import durak_server.packages
-import durak_server.packages.game_update_package
 
 class GameSession:
     def __init__(self):
@@ -20,12 +18,9 @@ class GameSession:
         self.players: list[Player] = []
         self.state = GameState.Preperation
 
-        self.game_config = durak_server.configs.default_game_config_factory.create_game_config()
-
-        self.point_earn_system = None
+        self.game_config = durak_server.config.default_game_config_factory.create_game_config()
         self.end_condition_factory = self.game_config.endcondition_factory
 
-        self.shop = self.game_config.shop
 
         # Start the game lobby loop
         self.thread = Thread(target=self.lobby_loop)
@@ -120,51 +115,8 @@ class GameSession:
             for player in self.players:
                 while received_package := player.read_package():
                     match received_package:
-                        case durak_server.packages.PlayerClicksPackage():
-                            player.currency += received_package.count * player.click_modifier
-                        case durak_server.packages.ShopPurchaseRequestPackage():
-                            player.process_shop_transaction(received_package.upgrade_name, received_package.tier)
                         case _:
                             pass  # Logging
-
-            for player in self.players:
-                player.currency += player.earn_rate * _game_timer_interval
-
-
-            # Distribute Points
-            if self.game_config.point_earning.tick():
-                for rank, player in enumerate(sorted(self.players, key=lambda p: p.currency, reverse=True)):
-                    player.points = self.game_config.point_earning.earn_points(rank + 1, player.points)
-                    
-            scoreboard = {player: player.points for player in self.players}
-
-            top_players = sorted(
-            scoreboard.items(),
-            key=lambda kv: kv[1],
-            reverse=True
-            )[:self.game_config.base_scoreboard_top_players]
-
-
-            scoreboard_array = [
-                {
-                    "playername": player.name,
-                    "score": score
-                }
-                for player, score in top_players
-            ]
-
-            # Send game-update package to each player
-            for player in self.players:
-                player.send_package(
-                    durak_server.packages.GameUpdatePackage(
-                        player.currency,
-                        player.points,
-                        player.click_modifier,
-                        player.earn_rate,
-                        scoreboard_array
-                    )
-                )
-
 
             # Check end condition
             if (self.end_condition.is_game_end()):
@@ -178,29 +130,6 @@ class GameSession:
 
     def end_routine(self):
         # Send end-routine package
-        self.players.sort(key=lambda p: p.points, reverse=True)
-        scoreboard = [
-            {
-                "playername": player.name,
-                "score": player.points
-            } for player in self.players
-        ]
-
-        self.players[0].send_package(
-            durak_server.packages.EndRoutinePackage(
-                score=self.players[0].points,
-                is_winner=True,
-                scoreboard=scoreboard
-            )
-        )
-        for player in self.players[1:]:
-            player.send_package(
-                durak_server.packages.EndRoutinePackage(
-                    score=player.points,
-                    is_winner=False,
-                    scoreboard=scoreboard
-                )
-            )
 
         # Wait for packages to be sent
         time.sleep(0.5)

@@ -8,7 +8,7 @@ here = pathlib.Path(__file__).parent
 repo_root_dir = here.parent.parent
 # don't like this but unsure how to mitigate except for dev installation in cwd
 sys.path.insert(0, os.path.join(repo_root_dir / "src"))
-import bbc_server
+import durak_server
 
 from tests.integration import IP, PORT
 
@@ -23,7 +23,7 @@ class TestServer:
         self.server_thread.start()
 
     def start_server_thread(self):
-        self.server = bbc_server.tcp_server.TcpServer(IP, PORT)
+        self.server = durak_server.tcp_server.TcpServer(IP, PORT)
         self.server.start()
 
     def stop(self):

@@ -1,4 +1,4 @@
-from bbc_server.packages import BasePackage
+from durak_server.packages import BasePackage
 
 class ConnectToGameSessionPackage(BasePackage):
     PACKAGE_TYPE = "connect-to-game-session"

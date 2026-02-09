@@ -1,13 +1,11 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
-from bbc_server.server_logging import PlayerLogger
+from durak_server.server_logging import PlayerLogger
 
 if TYPE_CHECKING:
-    from bbc_server.tcp_client import TcpClient
+    from durak_server.tcp_client import TcpClient
 
-from bbc_server._typing import BBCPackage
-from bbc_game.shop import BaseShop, TieredUpgrade, ClickUpgrade, GainUpgrade
-from bbc_server.packages import InvalidShopTransaction, ShopPurchaseConfirmationPackage
+from durak_server._typing import GamePackage
 
 
 class Player:
@@ -16,9 +14,6 @@ class Player:
         client: TcpClient,
         name: str = None,
         is_ready: bool = False,
-        currency: float = 0,
-        earn_rate: float = 0,
-        click_modifier: float = 1,
         gamecode: Optional[str] = None,
     ):
         """class representing an individual player
@@ -27,16 +22,12 @@ class Player:
             client (TcpClient): the TCP Client used
             name (str, optional): player name. Defaults to None.
             is_ready (bool, optional): readiness status. Defaults to False.
-            currency (float, optional): currency. Defaults to 0.
-            earn_rate (float, optional): earn_rate. Defaults to 0.
+            gamecode (str, optional): player game code
         """
         self._client = client
         self._name = name
         self._is_ready = is_ready
-        self._currency = currency
         self._points = 0
-        self._earn_rate = earn_rate
-        self._click_modifier = click_modifier
         self._gamecode = gamecode
         self._logger = PlayerLogger(self._name, self._gamecode, self._client.address[0], self._client.address[1])
         self._client.logger = self._logger  # sharing the player logger with the underlying TcpClient
@@ -105,32 +96,24 @@ class Player:
     def click_modifier(self, click_modifier: float) -> float:
         self._click_modifier = click_modifier
 
-    @property
-    def shop(self) -> BaseShop:
-        return self._shop
 
-    @shop.setter
-    def shop(self, shop: BaseShop):
-        self._shop = shop
-
-
-    def read_package(self, **kwargs) -> Optional[BBCPackage]:
+    def read_package(self, **kwargs) -> Optional[GamePackage]:
         """read a package if available (wraps TCPClient.read_package())
         If a package is invalid the next package is automatically read.
 
         Returns:
-            Optional[BBCPackage]: input package
+            Optional[GamePackage]: input package
         """
         package = self._client.read_package(**kwargs)
         if package:
             self._logger.debug(f"Read package: {str(package)}")
         return package
 
-    def send_package(self, package: BBCPackage, **kwargs) -> None:
+    def send_package(self, package: GamePackage, **kwargs) -> None:
         """send package to the Client (wraps TCPClient.send_package())
 
         Args:
-            package (BBCPackage): package to send
+            package (GamePackage): package to send
         """
         self._client.send_package(package=package, **kwargs)
 
@@ -138,49 +121,6 @@ class Player:
         """small function to update the logger"""
         self._logger = PlayerLogger(self._name, self.gamecode, self._client.address[0], self._client.address[1])
         self._client.logger = self._logger
-
-    def process_shop_transaction(self, upgrade_name: str, tier: Optional[int] = None):
-        if upgrade_name not in self.shop.upgrades.keys():
-            self._logger.info(f"Invalid ShopPurchaseTransaction. stage=upgrade_exists, original request: {upgrade_name=}, {tier=}.")
-            self.send_package(InvalidShopTransaction("upgrade_exists", upgrade_name, tier))
-            return
-
-        upgrade = self.shop.upgrades.get(upgrade_name)
-        if tier and (not isinstance(upgrade, TieredUpgrade) or tier > upgrade.max_tier or tier != upgrade.current_tier):
-            self._logger.info(f"Invalid ShopPurchaseTransaction. stage=invalid_tier, original request: {upgrade_name=}, {tier=}.")
-            self.send_package(InvalidShopTransaction("invalid_tier", upgrade_name, tier))
-            return
-        if isinstance(upgrade, TieredUpgrade):
-            curr = upgrade.current_upgrade
-            upgrade_price = curr.price
-            if self.currency < upgrade_price:
-                self._logger.info(f"Invalid ShopPurchaseTransaction. stage=price_check, original request: {upgrade_name=}, {tier=}.")
-                self.send_package(InvalidShopTransaction("price_check", upgrade_name, tier))
-                return
-            else:
-                self.currency -= upgrade_price
-                if isinstance(curr, ClickUpgrade):
-                    self.click_modifier = curr.apply_upgrade(self.click_modifier)
-                    self._logger.debug(f"purchased upgrade {upgrade_name=}, {tier=}. New click_modifier={self.click_modifier}.")
-                elif isinstance(curr, GainUpgrade):
-                    self.earn_rate = curr.apply_upgrade(self.earn_rate)
-                    self._logger.debug(f"purchased upgrade {upgrade_name=}, {tier=}. New earn_rate={self.earn_rate}.")
-                upgrade.upgrade()
-        else:
-            if self.currency < upgrade.price:
-                self._logger.info(f"Invalid ShopPurchaseTransaction. stage=price_check, original request: {upgrade_name=}, {tier=}.")
-                self.send_package(InvalidShopTransaction("price_check", upgrade_name, tier))
-                return
-            self.currency -= upgrade.price
-            if isinstance(upgrade, ClickUpgrade):
-                self.click_modifier = upgrade.apply_upgrade(self.click_modifier)
-                self._logger.debug(f"purchased upgrade {upgrade_name=}, {tier=}. New click_modifier={self.click_modifier}.")
-            elif isinstance(upgrade, GainUpgrade):
-                self.earn_rate = upgrade.apply_upgrade(self.earn_rate)
-                self._logger.debug(f"purchased upgrade {upgrade_name=}, {tier=}. New earn_rate={self.earn_rate}.")
-
-        self.send_package(ShopPurchaseConfirmationPackage(name=upgrade_name, tier=tier))
-
 
     @property
     def logger(self) -> PlayerLogger:

@@ -11,15 +11,15 @@ import logging
 from tests.utils.logging import TEST_LOGGER
 
 
-BBC_SERVER_DIR = pathlib.Path(__file__).parent.parent / "src"
+durak_server_DIR = pathlib.Path(__file__).parent.parent / "src"
 
-sys.path.insert(0, os.path.join(BBC_SERVER_DIR))
+sys.path.insert(0, os.path.join(durak_server_DIR))
 sys.path.insert(0, os.path.join(pathlib.Path(__file__).parent.parent))
 
-import bbc_server
-from bbc_server.exceptions import InvalidPackageTypeException, InvalidBodyException
-from bbc_server.packages import Decoder, PackageParsingExceptionPackage
-from bbc_server._typing import BBCPackage
+import durak_server
+from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
+from durak_server.packages import Decoder, PackageParsingExceptionPackage
+from durak_server._typing import GamePackage
 
 
 class TcpTestClient:
@@ -96,12 +96,12 @@ class TcpTestClient:
             TEST_LOGGER.info("client lost connection")
             self._is_running = False
 
-    def read_package(self, **kwargs) -> Optional[BBCPackage]:
+    def read_package(self, **kwargs) -> Optional[GamePackage]:
         """read a package if available
         If a package is invalid the next package is automatically read.
 
         Returns:
-            Optional[BBCPackage]: input package
+            Optional[GamePackage]: input package
         """
         package = None
         while self.has_content():
@@ -126,11 +126,11 @@ class TcpTestClient:
 
             return package
 
-    def send_package(self, package: BBCPackage, **kwargs) -> None:
+    def send_package(self, package: GamePackage, **kwargs) -> None:
         """send package to the Client
 
         Args:
-            package (BBCPackage): package to send
+            package (GamePackage): package to send
         """
         self.send_string(package.to_json())
 

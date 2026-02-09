@@ -13,7 +13,7 @@ repo_root_dir = here.parent.parent
 
 # don't like this but unsure how to mitigate except for dev installation in cwd
 sys.path.insert(0, os.path.join(repo_root_dir / "src"))
-from bbc_server.packages import *
+from durak_server.packages import *
 
 from tests.tcp_test_client import TcpTestClient
 from tests.integration import IP, PORT

@@ -1,4 +1,4 @@
-from bbc_server.packages import BasePackage
+from durak_server.packages import BasePackage
 from typing import Optional
 
 class ExceptionPackage(BasePackage):
@@ -84,24 +84,3 @@ class InvalidGameCodeExceptionPackage(ExceptionPackage):
 
     def __repr__(self):
         return f"InvalidGameCodeExceptionPackage({self._code}, {str(self._details)})"
-
-
-class InvalidShopTransaction(ExceptionPackage):
-
-    def __init__(self, stage: str, upgrade_name: str, upgrade_tier: Optional[str] = None, details: Optional[dict] = None):
-        if not details:
-            details = {}
-        self._stage = stage
-        self._upgrade_name = upgrade_name
-        self._upgrade_tier = upgrade_tier
-        details = {
-            "stage": stage,
-            "upgrade_name": upgrade_name,
-            **details
-        }
-        if upgrade_tier is not None:
-            details["upgrade_tier"] = upgrade_tier
-        super().__init__("InvalidShopTransaction", details)
-
-    def __repr__(self):
-        return f"InvalidShopTransaction({self._stage}, {self._upgrade_name}, {self._upgrade_tier}, {self._details})"
