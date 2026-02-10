@@ -37,6 +37,7 @@ packages sent from client to server
 | [status-update](#status-update)                     | lobby       | event      | N              |
 | [player-attack](#player-attack)                     | game        | event      | N              |
 | [player-defense](#player-defense)                   | game        | event      | N              |
+| [player-surrender](#player-surrender)               | game        | event      | N              |
 
 [^1]: package can be sent N times but only once succefully.
 
@@ -156,6 +157,21 @@ This package is sent when a player defends a attack card with a defense card.
             "3": 6
         }
 	}
+}
+```
+</details>
+</div>
+
+<div id="player-surrender">
+<details>
+<summary>player surrender</summary>
+
+This package is sent when a player surrenders and picks up all attacking cards
+
+```json
+{
+	"type":	"player-surrender",
+	"body": {}
 }
 ```
 </details>
