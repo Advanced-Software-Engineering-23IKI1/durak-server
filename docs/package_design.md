@@ -189,11 +189,12 @@ This package is sent when a player surrenders and picks up all attacking cards
 |-----------------------------------------------------------|------------|------------|----------------|--------------|
 | [exception](#exception)                                   | global     | event      | N              | -            |
 | [lobby-status](#lobby-status)                             | lobby      | periodical | N              | no           |
+| [game-config](#game-config)                               | lobby      | event      | N              | no           |
 | [game-start](#game-start)                                 | lobby      | event      | 1              | no           |
 | [player-hands-update](#player-hands-update)               | game       | event      | N              | yes          |
 | [player-status-update](#player-status-update)             | game       | event      | N              | no           |
 | [table-update](#table-update)                             | game       | event      | N              | no           |
-| [end-routine](#table-update)                              | end        | event      | 1              | yes          |
+| [end-routine](#table-update)                              | end        | event      | 1              | no           |
 
 </details>
 
@@ -253,6 +254,49 @@ This package is sent periodically to indicate the current status of the lobby.
 ```
 </details>
 </div>
+
+
+<div id="game-config">
+<details>
+<summary>game-config</summary>
+
+This package is sent once before game start and every time the config is updated.
+
+```json
+{
+    "type": "game-config",
+    "body": {
+        "cards": [{  // ordered from lowest -> highest (card strength is NOT determined by value attribute)
+            "value": "2",  // card value (for display)
+            "suits": {
+                "hearts": [12],  // card id(s) [array to allow for multiple decks in large games]
+                "diamonds": [21],
+                "spades": [13],
+                "clubs": [89]
+            }
+        },
+        {
+            "value": "A",
+            "suits": {
+                "hearts": [11],
+                "diamonds": [31],
+                "spades": [17],
+                "clubs": [0]
+            }
+        }]
+    },
+    "attack-forwarding": {  // attack forwarding rules
+        "is-enabled": true,  // global enable/disable
+        "exact-count-match": false  // whether the exact amount of card attacking has to be matched for forwarding
+    },
+    "player-card-count": 7,  // amount of cards each player receives
+    "all-card-defend-early-end": false
+}
+```
+</details>
+</div>
+
+
 
 
 <div id="game-start">
