@@ -314,7 +314,7 @@ Valid status strings are
 {
     "type": "player-status",
     "body": {
-        "player-status": {
+        "statuses": {
             "8": "attack",
             "7": "attack",
             "6": "defend",
@@ -336,7 +336,7 @@ This package is sent to update the cards on the table.
 {
     "type": "table-update",
     "body": {
-        "player-status": {
+        "table-state": {
             "8": {  // attacking card id 8
                 "from_player": 9,  // from player_id 9
                 "defend_card": 17  // defended with card id 17
@@ -365,7 +365,6 @@ This package is sent on game completion for the leaderboard
 {
     "type": "end-routine",
     "body": {
-        "is-winner": false,  // whether the package destination is the winner
         "scoreboard": [4,2,7,9,2,9]  // ordered array of player ids (first->last place)
     }
 }
@@ -418,4 +417,45 @@ All packages may include additional attributes in the `details` and should be pa
 </details>
 </div>
 
+<div id="InvalidCardIdExceptionPackage">
+<details>
+<summary>InvalidCardIdExceptionPackage</summary>
 
+Sent if a card id is invalid
+
+```json
+{
+    "type": "exception",
+    "body": {
+        "name": "ExceptionPackage",
+        "details": {
+            "card_id": [3,4]  // card(s) that player attempted to use
+        }
+    }
+}
+```
+
+</details>
+</div>
+
+
+<div id="CardIdNotInPossessionExceptionPackage">
+<details>
+<summary>CardIdNotInPossessionExceptionPackage</summary>
+
+Sent if a card_id that is being used is not in the player's posession
+
+```json
+{
+    "type": "exception",
+    "body": {
+        "name": "CardIdNotInPossessionExceptionPackage",
+        "details": {
+            "card_id": [3,4]  // card(s) that player attempted to use
+        }
+    }
+}
+```
+
+</details>
+</div>
