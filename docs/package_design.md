@@ -239,10 +239,12 @@ This package is sent periodically to indicate the current status of the lobby.
         "players": [
             {
                 "playername": "player1",
+                "player_id": 9,
                 "is-ready": true
             },
             {
                 "playername": "player2",
+                "player_id": 0,
                 "is-ready": false
             }
         ]
