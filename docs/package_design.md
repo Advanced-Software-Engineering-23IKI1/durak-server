@@ -188,7 +188,7 @@ This package is sent when a player surrenders and picks up all attacking cards
 | Package Type                                              | Game Stage | Sent On    | Max Times Sent | Personalized |
 |-----------------------------------------------------------|------------|------------|----------------|--------------|
 | [exception](#exception)                                   | global     | event      | N              | -            |
-| [lobby-status](#lobby-status)                             | lobby      | periodical | N              | no           |
+| [lobby-status](#lobby-status)                             | lobby      | event      | N              | no           |
 | [game-config](#game-config)                               | lobby      | event      | N              | no           |
 | [game-start](#game-start)                                 | lobby      | event      | 1              | no           |
 | [player-hands-update](#player-hands-update)               | game       | event      | N              | yes          |
@@ -266,24 +266,51 @@ This package is sent once before game start and every time the config is updated
 {
     "type": "game-config",
     "body": {
-        "cards": [{  // ordered from lowest -> highest (card strength is NOT determined by value attribute)
-            "value": "2",  // card value (for display)
-            "suits": {
-                "hearts": [12],  // card id(s) [array to allow for multiple decks in large games]
-                "diamonds": [21],
-                "spades": [13],
-                "clubs": [89]
-            }
-        },
-        {
-            "value": "A",
-            "suits": {
-                "hearts": [11],
-                "diamonds": [31],
-                "spades": [17],
-                "clubs": [0]
-            }
-        }]
+        "cards": [  // card groups ordered from lowest -> highest (card strength is NOT determined by value attribute)
+            [  // lowest card strength(s) . This list may also hold up to N card objects to allow for multi card deck games
+                // trump cards are ommitted here as they are stronger
+                {
+                    "value": "2",  // card value (for display)
+                    "suit": "hearts",
+                    "id": 12
+                },
+                {
+                    "value": "2",
+                    "suit": "diamonds",
+                    "id": 12
+                },
+                {
+                    "value": "2",
+                    "suit": "spades",
+                    "id": 12
+                },
+            ],
+            [
+                {
+                    "value": "3",
+                    "suit": "hearts",
+                    "id": 18
+                },
+                {
+                    "value": "3",
+                    "suit": "diamonds",
+                    "id": 21
+                },
+                {
+                    "value": "3",
+                    "suit": "spades",
+                    "id": 39
+                },
+            ],
+            [  // trump card(s) are ranked above all other cards. !important: this array can also have up to K elements due to multiple decks 
+                {
+                    "value": "2",
+                    "suit": "clubs",
+                    "id": 17
+                },
+            ]
+        ],
+
     },
     "attack-forwarding": {  // attack forwarding rules
         "is-enabled": true,  // global enable/disable
@@ -330,11 +357,16 @@ This package is sent on event to update player hand and other miscellaneous stat
     "type": "player-hands-update",
     "body": {
         "hand": [1,5,43,89],  // player hand card ids
-        "player-hands": {  // card count of opponent player hands, ordered in playing order
-            "2": 7, // player-id <-> card count
-            "4": 2,
-            "0": 0
-        },
+        "player-hands": [  // card count of opponent player hands, ordered in playing order
+            {
+                "player_id": 2,
+                "card_count": 9
+            },
+            {
+                "player_id": 9,
+                "card_count": null  //!! null if player is finished, 0 can be reached in attack but player has to draw, so 0 != null !!
+            }
+        ],
         "draw-pile": 12, // amount of cards on the draw pile (trump card NOT included)
         "trump": 3, // trump card id; if the card id drawn this attribute is set to null.
         "player-order": [2, 0, 1, 3, 7]  // player-ids in order (non-participating players [finished/disconnected] are ommitted)
@@ -358,12 +390,20 @@ Valid status strings are
 {
     "type": "player-status",
     "body": {
-        "statuses": {
-            "8": "attack",
-            "7": "attack",
-            "6": "defend",
-            "9": "finish"
-        }
+        "statuses": [
+            {
+                "player_id": 8,
+                "status": "attack"
+            },
+            {
+                "player_id": 5,
+                "status": "defend"
+            },
+            {
+                "player_id": 9,
+                "status": "finished"
+            }
+        ]
     }
 }
 ```
@@ -380,16 +420,18 @@ This package is sent to update the cards on the table.
 {
     "type": "table-update",
     "body": {
-        "table-state": {
-            "8": {  // attacking card id 8
-                "from_player": 9,  // from player_id 9
-                "defend_card": 17  // defended with card id 17
+        "table-state": [
+            {
+                "attack_id": 8,
+                "from_player": 9,
+                "defend_id": 7
             },
-            "1": {
-                "from_player": 6,
-                "defend_card": null  // not defended
+            {
+                "attack_id": 19,
+                "from_player": 0,
+                "defend_id": null
             }
-        }
+        ]
     }
 }
 ```
@@ -471,7 +513,7 @@ Sent if a card id is invalid
 {
     "type": "exception",
     "body": {
-        "name": "ExceptionPackage",
+        "name": "InvalidCardIdExceptionPackage",
         "details": {
             "card_id": [3,4]  // card(s) that player attempted to use
         }
