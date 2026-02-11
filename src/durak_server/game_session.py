@@ -28,23 +28,13 @@ class GameSession:
         self._logger = SessionLogger(gamecode=self.code)
 
     def update_player_list(self):
+        player_list_len = len(self.players)
         self.players = [player for player in self.players if player.client.is_running]
+        if len(self.players) != player_list_len:
+            self._send_status_update()
 
-    def lobby_loop(self):
-        loop_iteration = 0
-        while self.state is GameState.Preperation:
-            self.update_player_list()
-
-            # Receiving Player Ready State
-            for player in self.players:
-                while received_package := player.read_package():
-                    match received_package:
-                        case durak_server.packages.StatusUpdatePackage():
-                            player.is_ready = received_package.is_ready
-                        case _:
-                            pass  # Logging
-
-            # Sending Lobby Status
+    def _send_status_update(self):
+        if self.state is GameState.Preperation:
             player_list = [
                 {"playername": inner_player.name, "is-ready": inner_player.is_ready}
                 for inner_player in self.players]
@@ -55,6 +45,29 @@ class GameSession:
                         players=player_list
                     )
                 )
+
+    def lobby_loop(self):
+        loop_iteration = 0
+        while self.state is GameState.Preperation:
+            self.update_player_list()
+
+            # Receiving Player Ready State
+            status_has_changed = False
+            for player in self.players:
+                while received_package := player.read_package():
+                    match received_package:
+                        case durak_server.packages.StatusUpdatePackage():
+                            player.is_ready = received_package.is_ready
+                            status_has_changed = True
+                        case _:
+                            pass  # Logging
+
+            # Sending Lobby Status
+            player_list = [
+                {"playername": inner_player.name, "is-ready": inner_player.is_ready}
+                for inner_player in self.players]
+            if status_has_changed:
+                self._send_status_update()
 
 
             all_players_ready = all(player["is-ready"] for player in player_list)
@@ -153,6 +166,7 @@ class GameSession:
 
         self._logger.info(f"{player.name or 'Player'} [{player.client.address}] joined Session [{self.code}]")
         self.players.append(player)
+        self._send_status_update()
         return True
 
     def cleanup(self):
