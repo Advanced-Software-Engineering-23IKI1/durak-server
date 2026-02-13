@@ -146,16 +146,24 @@ This package is sent when a player
 <summary>player defense</summary>
 
 This package is sent when a player defends a attack card with a defense card.
+Up to N cards may be defended in the same package.
+Already defended cards are not re-sent via this package.
 
 ```json
 {
 	"type":	"player-defense",
 	"body":
 	{
-		"defense": {
-            "2": 4,  // attacking card id <-> defending card id
-            "3": 6
-        }
+		"defense": [
+            {
+                "attacking_card_id": 2,
+                "defending_card_id": 4
+            },
+            {
+                "attacking_card_id": 3,
+                "defending_card_id": 6
+            }
+        ]
 	}
 }
 ```
