@@ -36,7 +36,7 @@ class GameSession:
     def _send_status_update(self):
         if self.state is GameState.Preperation:
             player_list = [
-                {"playername": inner_player.name, "is-ready": inner_player.is_ready}
+                {"playername": inner_player.name, "player_id": inner_player.player_id, "is-ready": inner_player.is_ready}
                 for inner_player in self.players]
             for player in self.players:
                 player.send_package(

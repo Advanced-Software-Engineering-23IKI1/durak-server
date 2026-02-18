@@ -1,0 +1,97 @@
+from durak_server.packages import BasePackage
+from typing import Union
+
+class GameConfigPackage(BasePackage):
+    PACKAGE_TYPE = "game-config"
+    JSON_PARAM_MAP = {
+        "cards": "cards",
+        "attack-forwarding": "attack_forwarding",
+        "player-card-count": "player_card_count",
+        "all-card-defend-early-end": "all_card_defend_early_end"
+    }
+
+    def __init__(self, cards: list[list[dict[str, Union[str, int]]]], attack_forwarding: dict[str, bool], player_card_count: int, all_card_defend_early_end: bool):
+        """GameConfigPackage
+        see the package documentation for more information
+
+        Args:
+            cards (list[list[dict[str, Union[str, int]]]]): list of equivalent card strength groups. Each card described by a dict according to package-design
+            attack_forwarding (dict[str, bool]): attack forwarding ruleset
+            player_card_count (int): amount of cards each player receives
+            all_card_defend_early_end (bool): "Tu's Rule"
+
+        Raises:
+            ValueError: on invalid cards or attack_forwarding
+        """
+
+        if not self.is_cards_list_valid(cards):
+            raise ValueError("cards list is not valid")
+        if not self.is_attack_forwarding_dict_valid(attack_forwarding):
+            raise ValueError("attack_forwarding dict is not valid")
+        self.__cards = cards
+        self.__attack_forwarding = attack_forwarding
+        self.__player_card_count = player_card_count
+        self.__all_card_defend_early_end = all_card_defend_early_end
+
+    def is_cards_list_valid(self, cards: list[list[dict[str, Union[str, int]]]]) -> bool:
+        """check if cards list is in the defined format
+        This is performing only structural checks.
+        More information on the required strcture and data can be found in the package documentation
+
+        Args:
+            cards (list[list[dict[str, Union[str, int]]]]): input list
+
+        Returns:
+            bool: flag
+        """
+        keys = {"value", "suit", "id"}
+        try:
+            for cardgroup in cards:
+                for card in cardgroup:
+                    if not set(card.keys()) == keys:
+                        return False
+            return True
+        except (KeyError, TypeError, AttributeError):
+            return False
+
+    def is_attack_forwarding_dict_valid(self, attack_forwarding: dict[str, bool]) -> bool:
+        """check if attack_forwarding dict is in the defined format
+        This is performing only structural checks.
+        More information on the required strcture and data can be found in the package documentation
+
+        Args:
+            attack_forwarding (dict[str, bool]): input dict
+
+        Returns:
+            bool: flag
+        """
+        keys = {"is-enabled", "exact-count-match"}
+        return set(attack_forwarding.keys()) == keys
+
+    def _generate_body_dict(self) -> dict:
+        dict_repr = {
+            "cards": self.__cards,
+            "attack-forwarding": self.__attack_forwarding,
+            "player-card-count": self.__player_card_count,
+            "all-card-defend-early-end": self.__all_card_defend_early_end
+        }
+        return dict_repr
+    
+    @property
+    def cards(self) -> list[list[dict[str, Union[str, int]]]]:
+        return self.__cards
+    
+    @property
+    def attack_forwarding(self) -> dict[str, bool]:
+        return self.__attack_forwarding
+    
+    @property
+    def player_card_count(self) -> int:
+        return self.__player_card_count
+    
+    @property
+    def all_card_defend_early_end(self) -> bool:
+        return self.__all_card_defend_early_end
+
+    def __repr__(self):
+        return f"GameConfigPackage({self.cards}, {self.attack_forwarding}, {self.player_card_count}, {self.all_card_defend_early_end})"

@@ -1,5 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
+from enum import Enum
 from durak_server.server_logging import PlayerLogger
 
 if TYPE_CHECKING:
@@ -8,10 +9,18 @@ if TYPE_CHECKING:
 from durak_server._typing import GamePackage
 
 
+class PlayerGameStatus(str, Enum):
+    Attacker = "attack",
+    Defender = "defend",
+    Finished = "finished",
+    Unknown = "unknown"
+
+
 class Player:
     def __init__(
         self,
         client: TcpClient,
+        player_id: int = None,
         name: str = None,
         is_ready: bool = False,
         gamecode: Optional[str] = None,
@@ -20,11 +29,16 @@ class Player:
 
         Args:
             client (TcpClient): the TCP Client used
+            player_id (int, optional): player id. Defaults to the memory address
             name (str, optional): player name. Defaults to None.
             is_ready (bool, optional): readiness status. Defaults to False.
             gamecode (str, optional): player game code
         """
         self._client = client
+        if player_id is None:
+            self._player_id = id(self)
+        else:
+            self._player_id = player_id
         self._name = name
         self._is_ready = is_ready
         self._points = 0
@@ -32,10 +46,15 @@ class Player:
         self._logger = PlayerLogger(self._name, self._gamecode, self._client.address[0], self._client.address[1])
         self._client.logger = self._logger  # sharing the player logger with the underlying TcpClient
         self._shop = None
+        self._player_game_status = PlayerGameStatus.Unknown
 
     @property
     def client(self) -> TcpClient:
         return self._client
+    
+    @property
+    def player_id(self)-> int:
+        return self._player_id
 
     @property
     def name(self) -> str:

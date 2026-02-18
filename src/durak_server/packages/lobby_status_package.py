@@ -13,7 +13,7 @@ class LobbyStatusPackage(BasePackage):
 
         Args:
             gamecode (str): gamecode
-            players (list[dict]): list of players with their readiness status
+            players (list[dict]): list of players with their id and readiness status
 
         Raises:
             ValueError: on invalid player list
@@ -25,7 +25,7 @@ class LobbyStatusPackage(BasePackage):
 
     def is_player_list_valid(self, players: list[dict]) -> bool:
         """check if player list is in the defined format
-        This is done performing only structural checks.
+        This is performing only structural checks.
         More information on the required strcture and data can be found in the package documentation
 
         Args:
@@ -34,7 +34,7 @@ class LobbyStatusPackage(BasePackage):
         Returns:
             bool: flag
         """
-        keys = {"playername", "is-ready"}
+        keys = {"playername", "player_id", "is-ready"}
         return all(set(player.keys()) == keys for player in players)
 
     def _generate_body_dict(self) -> dict:

@@ -26,12 +26,16 @@ class DecoderTest(unittest.TestCase):
     def test_002_invalid_package_json(self):
         """test with valid JSON but invalid package"""
         test_str = '{"some_attr": 9}'
-        self.assertRaises(InvalidPackageTypeException, Decoder.deserialize, input_str=test_str)
+        self.assertRaises(
+            InvalidPackageTypeException, Decoder.deserialize, input_str=test_str
+        )
 
     def test_003_invalid_package_type(self):
         """test with valid JSON with nonexistent package type"""
         test_str = '{"type": "some_made_up_type"}'
-        self.assertRaises(InvalidPackageTypeException, Decoder.deserialize, input_str=test_str)
+        self.assertRaises(
+            InvalidPackageTypeException, Decoder.deserialize, input_str=test_str
+        )
 
     def test_004_invalid_body(self):
         """test with valid JSON and package type but incorrect body"""
@@ -64,7 +68,10 @@ class DecoderTest(unittest.TestCase):
 
     def test_009_decode_LobbyStatusPackage(self):
         """test decoding the LobbyStatusPackage"""
-        test_pkg = LobbyStatusPackage(gamecode="AE98", players=[{"playername": "player1", "is-ready": True}])
+        test_pkg = LobbyStatusPackage(
+            gamecode="AE98",
+            players=[{"playername": "player1", "player_id": 10, "is-ready": True}],
+        )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
@@ -77,5 +84,55 @@ class DecoderTest(unittest.TestCase):
     def test_011_decode_StatusUpdatePackage(self):
         """test decoding the StatusUpdatePackage"""
         test_pkg = StatusUpdatePackage(is_ready=True)
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_012_decode_PlayerSurrenderPackage(self):
+        """test decoding the PlayerSurrenderPackage"""
+        test_pkg = PlayerSurrenderPackage()
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_013_decode_EndRoutinePackage(self):
+        """test decoding the EndRoutinePackage"""
+        test_pkg = EndRoutinePackage([2, 3, 4, 5, 1, 8])
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_014_decode_PlayerStatusPackage(self):
+        """test decoding the PlayerStatusPackage"""
+        test_pkg = PlayerStatusPackage(
+            [{"player_id": 2, "status": "attack"}, {"player_id": 0, "status": "defend"}]
+        )
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_014_decode_PlayerHandsUpdatePackage(self):
+        """test decoding the PlayerHandsUpdatePackage"""
+        test_pkg = PlayerHandsUpdatePackage(
+            [1, 2, 3], [{"player_id": 2, "card_count": 5}], 32, 9, [1, 2, 3, 4]
+        )
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_014_decode_TableUpdatePackage(self):
+        """test decoding the TableUpdatePackage"""
+        test_pkg = TableUpdatePackage(
+            table_state=[{"attack_id": 8, "from_player": 3, "defend_id": None}]
+        )
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_015_decode_GameConfigPackage(self):
+        """test decoding the GameConfigPackage"""
+        test_pkg = GameConfigPackage(
+            cards=[[{"value": "5", "suit": "spades", "id": 3}]],
+            attack_forwarding={
+                "is-enabled": True,
+                "exact-count-match": False,
+            },
+            player_card_count=7,
+            all_card_defend_early_end=False,
+        )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
