@@ -156,12 +156,12 @@ Already defended cards are not re-sent via this package.
 	{
 		"defense": [
             {
-                "attacking_card_id": 2,
-                "defending_card_id": 4
+                "attack_id": 2,
+                "defend_id": 4
             },
             {
-                "attacking_card_id": 3,
-                "defending_card_id": 6
+                "attack_id": 3,
+                "defend_id": 6
             }
         ]
 	}
@@ -200,7 +200,7 @@ This package is sent when a player surrenders and picks up all attacking cards
 | [game-config](#game-config)                               | lobby      | event      | N              | no           |
 | [game-start](#game-start)                                 | lobby      | event      | 1              | no           |
 | [player-hands-update](#player-hands-update)               | game       | event      | N              | yes          |
-| [player-status-update](#player-status-update)             | game       | event      | N              | no           |
+| [player-status-update](#player-status)                    | game       | event      | N              | no           |
 | [table-update](#table-update)                             | game       | event      | N              | no           |
 | [end-routine](#table-update)                              | end        | event      | 1              | no           |
 
