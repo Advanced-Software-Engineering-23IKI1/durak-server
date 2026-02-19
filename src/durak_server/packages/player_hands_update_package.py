@@ -27,7 +27,7 @@ class PlayerHandsUpdatePackage(BasePackage):
             hand (list[int]): array of card ids the player is holding
             player_hands (list[dict[str, int]]): list of card counts in other players' hands
             draw_pile (int): amount of cards on the draw pile (excluding additional trump card)
-            trump (int): card id of the trump card (null if the card has been drawn)
+            trump (int): card id of the trump card (None/null if the card has been drawn)
             player_order (list[int]): array of player id's in playing order
 
         Raises:

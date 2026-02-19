@@ -1,4 +1,5 @@
 from durak_server.packages import BasePackage
+from typing import Optional
 
 class TableUpdatePackage(BasePackage):
     PACKAGE_TYPE = "table-update"
@@ -6,12 +7,12 @@ class TableUpdatePackage(BasePackage):
         "table-state": "table_state"
     }
 
-    def __init__(self, table_state: list[dict[str, int]]):
+    def __init__(self, table_state: list[dict[str, Optional[int]]]):
         """TableUpdatePackage
         see the package documentation for more information
 
         Args:
-            table_state (list[dict[str, int]]): list of card pairs as described in the design
+            table_state (list[dict[str, Optional[int]]]): list of card pairs as described in the design
 
         Raises:
             ValueError: on invalid table_state
@@ -20,13 +21,13 @@ class TableUpdatePackage(BasePackage):
             raise ValueError("table_state is not valid")
         self.__table_state = table_state
 
-    def is_table_state_valid(self, table_state: list[dict[str, int]]) -> bool:
+    def is_table_state_valid(self, table_state: list[dict[str, Optional[int]]]) -> bool:
         """check if table_state list is in the defined format
         This is performing only structural checks.
-        More information on the required strcture and data can be found in the package documentation
+        More information on the required structure and data can be found in the package documentation
 
         Args:
-            table_state (list[dict]): input table_state list
+            table_state (list[dict[str, Optional[int]]]): input table_state list
 
         Returns:
             bool: flag
@@ -41,7 +42,7 @@ class TableUpdatePackage(BasePackage):
         return dict_repr
 
     @property
-    def table_state(self) -> list[dict[str, int]]:
+    def table_state(self) -> list[dict[str, Optional[int]]]:
         return self.__table_state
 
     def __repr__(self):

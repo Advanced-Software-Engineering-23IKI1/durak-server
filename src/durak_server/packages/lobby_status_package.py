@@ -1,4 +1,5 @@
 from durak_server.packages import BasePackage
+from typing import Union
 
 class LobbyStatusPackage(BasePackage):
     PACKAGE_TYPE = "lobby-status"
@@ -7,13 +8,13 @@ class LobbyStatusPackage(BasePackage):
         "players": "players"
     }
 
-    def __init__(self, gamecode: str, players: list[dict]):
+    def __init__(self, gamecode: str, players: list[dict[str, Union[str, int, bool]]]):
         """LobbyStatusPackage
         see the package documentation for more information
 
         Args:
             gamecode (str): gamecode
-            players (list[dict]): list of players with their id and readiness status
+            players (list[dict[str, Union[str, int, bool]]]): list of players with their id and readiness status
 
         Raises:
             ValueError: on invalid player list
@@ -23,13 +24,13 @@ class LobbyStatusPackage(BasePackage):
             raise ValueError("player list is not valid")
         self.__players = players
 
-    def is_player_list_valid(self, players: list[dict]) -> bool:
+    def is_player_list_valid(self, players: list[dict[str, Union[str, int, bool]]]) -> bool:
         """check if player list is in the defined format
         This is performing only structural checks.
         More information on the required strcture and data can be found in the package documentation
 
         Args:
-            players (list[dict]): input player list
+            players (list[dict[str, Union[str, int, bool]]]): input player list
 
         Returns:
             bool: flag

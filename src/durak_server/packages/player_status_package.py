@@ -1,5 +1,6 @@
 from durak_server.packages import BasePackage
 from durak_server.player import PlayerGameStatus
+from typing import Union
 
 class PlayerStatusPackage(BasePackage):
     PACKAGE_TYPE = "player-status"
@@ -7,12 +8,12 @@ class PlayerStatusPackage(BasePackage):
         "statuses": "statuses"
     }
 
-    def __init__(self, statuses: list[dict]):
+    def __init__(self, statuses: list[dict[str, Union[int, bool]]]):
         """PlayerStatusPackage
         see the package documentation for more information
 
         Args:
-            statuses (list[dict]): list of players with their readiness status
+            statuses (list[dict[str, Union[int, bool]]]): list of players with their readiness status
 
         Raises:
             ValueError: on invalid player list
@@ -21,9 +22,9 @@ class PlayerStatusPackage(BasePackage):
             raise ValueError("player status list is not valid")
         self.__statuses = statuses
 
-    def is_status_list_valid(self, statuses: list[dict]) -> bool:
+    def is_status_list_valid(self, statuses: list[dict[str, Union[int, bool]]]) -> bool:
         """check if player status list is in the defined format
-        More information on the required strcture and data can be found in the package documentation
+        More information on the required structure and data can be found in the package documentation
 
         Args:
             statuses (list[dict]): input player status list
@@ -48,7 +49,7 @@ class PlayerStatusPackage(BasePackage):
         return dict_repr
 
     @property
-    def statuses(self) -> list[dict]:
+    def statuses(self) -> list[dict[str, Union[int, bool]]]:
         return self.__statuses
 
     def __repr__(self):

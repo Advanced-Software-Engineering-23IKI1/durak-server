@@ -125,3 +125,8 @@ class PackageTest(unittest.TestCase):
             player_card_count=7,
             all_card_defend_early_end=False,
         )
+
+    def test_008_PlayerDefensePackage_defense_list_validation(self):
+        """test the defense list validation on the PlayerDefensePackage"""
+        self.assertRaises(ValueError, PlayerDefensePackage, defense=[{"attack_id": 8, "defend_id": 7, "from_player": 4}])  # invalid extra key
+        self.assertRaises(ValueError, PlayerDefensePackage, defense=[{"attack_id": 7}])  # missing key

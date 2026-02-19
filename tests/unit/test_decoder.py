@@ -136,3 +136,15 @@ class DecoderTest(unittest.TestCase):
         )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_016_decode_PlayerAttackPackage(self):
+        """test decoding the PlayerAttackPackage"""
+        test_pkg = PlayerAttackPackage([2, 3, 4, 5, 1, 8])
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_017_decode_PlayerDefensePackage(self):
+        """test decoding the PlayerDefensePackage"""
+        test_pkg = PlayerDefensePackage([{"attack_id": 8, "defend_id": 9}, {"attack_id": 2, "defend_id": 0}])
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
