@@ -16,3 +16,16 @@ services:
     command: ["python", "-m", "tests.unit.run_tests"]
     ports:
       - "65432:65432"
+    profiles:
+      - unit_tests
+
+  integration_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: durak_server_integration_tests
+    command: ["python", "-m", "tests.integration.run_tests"]
+    ports:
+      - "65432:65432"
+    profiles:
+      - integration_tests
