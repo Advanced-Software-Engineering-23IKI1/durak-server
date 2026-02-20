@@ -1,0 +1,18 @@
+services:
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: durak_server
+    ports:
+      - "65432:65432"
+
+  unit_tests:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: durak_server_unit_tests
+    command: ["python", "-m", "tests.unit.run_tests"]
+    ports:
+      - "65432:65432"
