@@ -1,7 +1,7 @@
 # Durak-Server
 
 
-Thi project implements the Server Side for the Durak Online card game.
+This project implements the Server Side for the Durak Online card game.
 
 
 ### Docker Deployment
