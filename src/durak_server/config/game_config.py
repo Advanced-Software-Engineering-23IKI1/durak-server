@@ -23,10 +23,15 @@ class GameConfig(ABC):
         self.attack_forwarding_exact_count_match = attack_forwarding_exact_count_match
         self.player_card_count = player_card_count
         self.all_card_defend_early_end = all_card_defend_early_end
+        self._cards = self._generate_cards()
 
     @abstractmethod
-    def generate_cards(self) -> list[list[Card]]:
+    def _generate_cards(self) -> list[list[Card]]:
         pass
+
+    @property
+    def cards(self) -> list[list[Card]]:
+        return self._cards
 
 
 class BasicGameConfig(GameConfig):
@@ -39,17 +44,17 @@ class BasicGameConfig(GameConfig):
         deck: CardDeck,
         player_card_count: Optional[int] = None
     ):
+        self.card_order = card_order
+        self.deck = deck
+        self.trump = None
         super().__init__(
             attack_forwarding=attack_forwarding,
             attack_forwarding_exact_count_match=attack_forwarding_exact_count_match,
             all_card_defend_early_end=all_card_defend_early_end,
             player_card_count=player_card_count,
         )
-        self.card_order = card_order
-        self.deck = deck
-        self.trump = None
 
-    def generate_cards(self) -> list[list[Card]]:
+    def _generate_cards(self) -> list[list[Card]]:
         if self.trump is None:
             self._generate_trump()
 

@@ -123,7 +123,7 @@ class GameConfigPackage(BasePackage):
         return GameConfigPackage(
             cards=[
                 [vars(card) for card in cardgroups]
-                for cardgroups in game_config.generate_cards()
+                for cardgroups in game_config.cards
             ],
             attack_forwarding={
                 "is-enabled": game_config.attack_forwarding,
