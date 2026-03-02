@@ -1,5 +1,7 @@
 from durak_server.packages import BasePackage
+from durak_server.config.game_config import GameConfig
 from typing import Union
+
 
 class GameConfigPackage(BasePackage):
     PACKAGE_TYPE = "game-config"
@@ -7,10 +9,16 @@ class GameConfigPackage(BasePackage):
         "cards": "cards",
         "attack-forwarding": "attack_forwarding",
         "player-card-count": "player_card_count",
-        "all-card-defend-early-end": "all_card_defend_early_end"
+        "all-card-defend-early-end": "all_card_defend_early_end",
     }
 
-    def __init__(self, cards: list[list[dict[str, Union[str, int]]]], attack_forwarding: dict[str, bool], player_card_count: int, all_card_defend_early_end: bool):
+    def __init__(
+        self,
+        cards: list[list[dict[str, Union[str, int]]]],
+        attack_forwarding: dict[str, bool],
+        player_card_count: int,
+        all_card_defend_early_end: bool,
+    ):
         """GameConfigPackage
         see the package documentation for more information
 
@@ -33,7 +41,9 @@ class GameConfigPackage(BasePackage):
         self.__player_card_count = player_card_count
         self.__all_card_defend_early_end = all_card_defend_early_end
 
-    def is_cards_list_valid(self, cards: list[list[dict[str, Union[str, int]]]]) -> bool:
+    def is_cards_list_valid(
+        self, cards: list[list[dict[str, Union[str, int]]]]
+    ) -> bool:
         """check if cards list is in the defined format
         This is performing only structural checks.
         More information on the required strcture and data can be found in the package documentation
@@ -54,7 +64,9 @@ class GameConfigPackage(BasePackage):
         except (KeyError, TypeError, AttributeError):
             return False
 
-    def is_attack_forwarding_dict_valid(self, attack_forwarding: dict[str, bool]) -> bool:
+    def is_attack_forwarding_dict_valid(
+        self, attack_forwarding: dict[str, bool]
+    ) -> bool:
         """check if attack_forwarding dict is in the defined format
         This is performing only structural checks.
         More information on the required strcture and data can be found in the package documentation
@@ -73,25 +85,50 @@ class GameConfigPackage(BasePackage):
             "cards": self.__cards,
             "attack-forwarding": self.__attack_forwarding,
             "player-card-count": self.__player_card_count,
-            "all-card-defend-early-end": self.__all_card_defend_early_end
+            "all-card-defend-early-end": self.__all_card_defend_early_end,
         }
         return dict_repr
-    
+
     @property
     def cards(self) -> list[list[dict[str, Union[str, int]]]]:
         return self.__cards
-    
+
     @property
     def attack_forwarding(self) -> dict[str, bool]:
         return self.__attack_forwarding
-    
+
     @property
     def player_card_count(self) -> int:
         return self.__player_card_count
-    
+
     @property
     def all_card_defend_early_end(self) -> bool:
         return self.__all_card_defend_early_end
 
     def __repr__(self):
         return f"GameConfigPackage({self.cards}, {self.attack_forwarding}, {self.player_card_count}, {self.all_card_defend_early_end})"
+
+    @staticmethod
+    def from_GameConfig(game_config: GameConfig):
+        """generate a GameConfigPackage from a GameConfig object
+        #! WARING: this method performs no data checks.
+        Users are responsible for ensuring the game_config has a player_card_count set
+
+        Args:
+            game_config (GameConfig): the game config
+
+        Returns:
+            GameConfigPackage: the package
+        """
+        return GameConfigPackage(
+            cards=[
+                [vars(card) for card in cardgroups]
+                for cardgroups in game_config.generate_cards()
+            ],
+            attack_forwarding={
+                "is-enabled": game_config.attack_forwarding,
+                "exact-count-match": game_config.attack_forwarding_exact_count_match,
+            },
+            player_card_count=game_config.player_card_count,
+            all_card_defend_early_end=game_config.all_card_defend_early_end,
+        )

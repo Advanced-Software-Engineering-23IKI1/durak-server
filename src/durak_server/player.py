@@ -47,6 +47,7 @@ class Player:
         self._client.logger = self._logger  # sharing the player logger with the underlying TcpClient
         self._shop = None
         self._player_game_status = PlayerGameStatus.Unknown
+        self._hand = []
 
     @property
     def client(self) -> TcpClient:

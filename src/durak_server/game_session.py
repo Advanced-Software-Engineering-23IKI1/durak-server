@@ -7,6 +7,7 @@ from durak_server.server_logging import SessionLogger
 import durak_server
 import time
 import durak_server.config
+from durak_server._typing import GamePackage
 
 import durak_server.packages
 
@@ -18,9 +19,12 @@ class GameSession:
         self.players: list[Player] = []
         self.state = GameState.Preperation
 
-        self.game_config = durak_server.config.default_game_config_factory.create_game_config()
-        self.end_condition_factory = self.game_config.endcondition_factory
-
+        self.game_config = durak_server.config.default_game_config
+        if self.game_config.player_card_count is None:
+            self.__dynamic_config = True
+        else:
+            self.__dynamic_config = False
+        self.__player_count_has_changed = True
 
         # Start the game lobby loop
         self.thread = Thread(target=self.lobby_loop)
@@ -32,27 +36,49 @@ class GameSession:
         self.players = [player for player in self.players if player.client.is_running]
         if len(self.players) != player_list_len:
             self._send_status_update()
+            self.__player_count_has_changed = True
+
+    def broadcast(self, package: GamePackage):
+        """broadcast package to all players"""
+        self.update_player_list()
+        for player in self.players:
+            player.send_package(package=package)
 
     def _send_status_update(self):
         if self.state is GameState.Preperation:
             player_list = [
                 {"playername": inner_player.name, "player_id": inner_player.player_id, "is-ready": inner_player.is_ready}
                 for inner_player in self.players]
-            for player in self.players:
-                player.send_package(
-                    durak_server.packages.LobbyStatusPackage(
+            self.broadcast(durak_server.packages.LobbyStatusPackage(
                         self.code,
                         players=player_list
-                    )
-                )
+                    ))
+    def _update_config(self) -> bool:
+        self.update_player_list()
+        mapping_dict = durak_server.config.CARDCOUNT_MAPPING.get(self.game_config.deck)
+        player_card_count = mapping_dict.get(len(self.players))
+        if player_card_count is None:
+            raise ValueError("player count too high for provided config")
+        self.game_config.player_card_count = player_card_count
+        self._send_config()
+
+    def _send_config(self):
+        self.broadcast(durak_server.packages.GameConfigPackage.from_GameConfig(self.game_config))
 
     def lobby_loop(self):
         loop_iteration = 0
         while self.state is GameState.Preperation:
             self.update_player_list()
 
-            # Receiving Player Ready State
+            config_has_changed = False
             status_has_changed = False
+            if self.__dynamic_config and self.__player_count_has_changed:
+                config_has_changed = self._update_config()
+
+            # lobby-based game customization here
+
+
+            # Receiving Player packages
             for player in self.players:
                 while received_package := player.read_package():
                     match received_package:
@@ -62,13 +88,17 @@ class GameSession:
                         case _:
                             pass  # Logging
 
+            # send config
+            if config_has_changed:
+                self._send_config()
+
             # Sending Lobby Status
-            player_list = [
-                {"playername": inner_player.name, "is-ready": inner_player.is_ready}
-                for inner_player in self.players]
             if status_has_changed:
                 self._send_status_update()
 
+            player_list = [
+                {"playername": inner_player.name, "is-ready": inner_player.is_ready}
+                for inner_player in self.players]
 
             all_players_ready = all(player["is-ready"] for player in player_list)
             # Increase iterator if all Players are ready
@@ -96,31 +126,17 @@ class GameSession:
             self.state = GameState.Kill
             self.cleanup()
             return
-        
-        shop_broadcast_pkg = durak_server.packages.create_ShopBroadcastPackage_from_shop(self.game_config.shop)
+
         for player in self.players:
             # Send Game Starting Package to players
             player.send_package(
                 durak_server.packages.GameStartPackage()
             )
-            # Update player values according to game config
-            player.currency = self.game_config.base_currency
-            player.earn_rate = self.game_config.base_earn_rate
-            player._click_modifier = self.game_config.base_modifier
-            player.shop = self.game_config.shop()
-            player.send_package(shop_broadcast_pkg)
 
         self._logger.info(f"Session [{self.code}] switched state to running")
 
 
-        self.end_condition = self.game_config.endcondition_factory.create_EndCondition()
-        if isinstance(self.end_condition,durak_server.end_condition.PointBasedEndCondition):
-            self.end_condition.add_players(players=self.players)
-
-
-
     def game_loop(self):
-        _game_timer_interval = 0.1
         scoreboard = {}
         while self.state is GameState.Running:
             
@@ -130,12 +146,6 @@ class GameSession:
                     match received_package:
                         case _:
                             pass  # Logging
-
-            # Check end condition
-            if (self.end_condition.is_game_end()):
-                self.state = GameState.Ended
-
-            time.sleep(_game_timer_interval)
 
         if self.state is GameState.Ended:
             self.end_routine()
@@ -167,6 +177,9 @@ class GameSession:
         self._logger.info(f"{player.name or 'Player'} [{player.client.address}] joined Session [{self.code}]")
         self.players.append(player)
         self._send_status_update()
+        self.__player_count_has_changed = True
+        config_pkg = durak_server.packages.GameConfigPackage.from_GameConfig(self.game_config)
+        player.send_package(durak_server.packages.GameConfigPackage.from_GameConfig(self.game_config))  # send config
         return True
 
     def cleanup(self):
