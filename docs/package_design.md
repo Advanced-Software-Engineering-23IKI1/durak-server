@@ -116,6 +116,35 @@ It can be sent N times per player and is event-driven.
 </details>
 </div>
 
+<div id="user-game-config">
+<details>
+<summary>user game config</summary>
+
+This package is sent when the host player changes the config
+
+```json
+{
+	"type":	"user-game-config",
+	"body":
+	{
+        "card-order": [
+            "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"  // list encoding deck used and strength of values
+        ]
+        "attack-forwarding": {  // attack forwarding rules
+            "is-enabled": true,  // global enable/disable
+            "exact-count-match": false  // whether the exact amount of card attacking has to be matched for forwarding
+        },
+        "player-card-count": 7,  // amount of cards each player receives
+        "all-card-defend-early-end": false
+	}
+}
+```
+</details>
+</div>
+
+
+
+
 
 ### game loop
 

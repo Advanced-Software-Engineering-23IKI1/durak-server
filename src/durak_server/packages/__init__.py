@@ -13,6 +13,7 @@ from durak_server.packages.table_update_package import TableUpdatePackage
 from durak_server.packages.game_config_package import GameConfigPackage
 from durak_server.packages.player_attack_package import PlayerAttackPackage
 from durak_server.packages.player_defense_package import PlayerDefensePackage
+from durak_server.packages.user_game_config_package import UserGameConfigPackage
 
 # dictionairy to map package names to actual package classes
 PACKAGE_DICT = {
@@ -29,7 +30,8 @@ PACKAGE_DICT = {
     "table-update": TableUpdatePackage,
     "game-config": GameConfigPackage,
     "player-attack": PlayerAttackPackage,
-    "player-defense": PlayerDefensePackage
+    "player-defense": PlayerDefensePackage,
+    "user-game-config": UserGameConfigPackage
 }
 
 
@@ -51,5 +53,6 @@ __all__ = [
     "TableUpdatePackage",
     "GameConfigPackage",
     "PlayerAttackPackage",
-    "PlayerDefensePackage"
+    "PlayerDefensePackage",
+    "UserGameConfigPackage"
 ]
