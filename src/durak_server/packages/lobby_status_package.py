@@ -27,7 +27,7 @@ class LobbyStatusPackage(BasePackage):
     def is_player_list_valid(self, players: list[dict[str, Union[str, int, bool]]]) -> bool:
         """check if player list is in the defined format
         This is performing only structural checks.
-        More information on the required strcture and data can be found in the package documentation
+        More information on the required structure and data can be found in the package documentation
 
         Args:
             players (list[dict[str, Union[str, int, bool]]]): input player list

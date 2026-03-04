@@ -59,6 +59,20 @@ class BasicGameConfig(GameConfig):
             self._generate_trump()
 
         cards = self.deck.cards
+
+        # card order validation
+        values = list(set([card.value for card in cards]))
+        if len(self.card_order) < len(values):
+            raise ValueError("Card Order does not match Deck used")
+        elif len(self.card_order) == len(values):
+            if not set(self.card_order) == set(values):
+                raise ValueError("Card Order does not match Deck used")
+        else:
+            if not set(values).issubset(set(self.card_order)):
+                raise ValueError("Card Order does not match Deck used")
+
+            self.card_order = [value for value in self.card_order if value in values]
+
         reg_cardgroups = {value: [] for value in self.card_order}
         trump_groups = {value: [] for value in self.card_order}
 

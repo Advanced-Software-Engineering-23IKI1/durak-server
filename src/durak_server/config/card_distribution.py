@@ -2,7 +2,7 @@
 
 from durak_server.game.card import Deck32, Deck52
 
-DECKS32_MAPPING = {
+DECK32_MAPPING = {
     1: 10,
     2: 8,
     3: 7,
@@ -29,6 +29,6 @@ DECK52_MAPPING = {
 
 
 CARDCOUNT_MAPPING = {
-    Deck32: DECKS32_MAPPING,
+    Deck32: DECK32_MAPPING,
     Deck52: DECK52_MAPPING,
 }
