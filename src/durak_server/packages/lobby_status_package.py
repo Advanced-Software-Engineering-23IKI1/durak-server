@@ -8,7 +8,7 @@ class LobbyStatusPackage(BasePackage):
         "players": "players"
     }
 
-    def __init__(self, gamecode: str, players: list[dict[str, Union[str, int, bool]]]):
+    def __init__(self, gamecode: str, players: list[dict[str, Union[str, int, bool, bool]]]):
         """LobbyStatusPackage
         see the package documentation for more information
 
@@ -24,7 +24,7 @@ class LobbyStatusPackage(BasePackage):
             raise ValueError("player list is not valid")
         self.__players = players
 
-    def is_player_list_valid(self, players: list[dict[str, Union[str, int, bool]]]) -> bool:
+    def is_player_list_valid(self, players: list[dict[str, Union[str, int, bool, bool]]]) -> bool:
         """check if player list is in the defined format
         This is performing only structural checks.
         More information on the required structure and data can be found in the package documentation
@@ -35,7 +35,7 @@ class LobbyStatusPackage(BasePackage):
         Returns:
             bool: flag
         """
-        keys = {"playername", "player_id", "is-ready"}
+        keys = {"playername", "player_id", "is-ready", "can-modify-config"}
         return all(set(player.keys()) == keys for player in players)
 
     def _generate_body_dict(self) -> dict:

@@ -70,7 +70,7 @@ class DecoderTest(unittest.TestCase):
         """test decoding the LobbyStatusPackage"""
         test_pkg = LobbyStatusPackage(
             gamecode="AE98",
-            players=[{"playername": "player1", "player_id": 10, "is-ready": True}],
+            players=[{"playername": "player1", "player_id": 10, "is-ready": True, "can-modify-config": False}],
         )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
@@ -132,6 +132,7 @@ class DecoderTest(unittest.TestCase):
                 "exact-count-match": False,
             },
             player_card_count=7,
+            dynamic_card_count_scaling=False,
             all_card_defend_early_end=False,
         )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())

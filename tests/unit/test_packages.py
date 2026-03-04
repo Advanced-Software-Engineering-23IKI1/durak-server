@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(repo_root_dir / "src"))
 
 from durak_server.packages import *
 from durak_server.player import PlayerGameStatus
+from durak_server.config import BasicGameConfig
 
 
 class PackageTest(unittest.TestCase):
@@ -94,6 +95,7 @@ class PackageTest(unittest.TestCase):
             cards=[{"value": "3", "suit": "spades", "id": 3}],  # invalid as no card group
             attack_forwarding={"is-enabled": True, "exact-count-match": False},
             player_card_count=7,
+            dynamic_card_count_scaling=False,
             all_card_defend_early_end=False,
         )
 
@@ -103,6 +105,7 @@ class PackageTest(unittest.TestCase):
             cards=[[{"value": "3", "suit": "spades"}]],  # inner card object missing data
             attack_forwarding={"is-enabled": True, "exact-count-match": False},
             player_card_count=7,
+            dynamic_card_count_scaling=False,
             all_card_defend_early_end=False,
         )
 
@@ -114,6 +117,7 @@ class PackageTest(unittest.TestCase):
             cards=[[{"value": "3", "suit": "spades", "id": 3}]],
             attack_forwarding={"is-enabled": True},  # invalid as missing a key
             player_card_count=7,
+            dynamic_card_count_scaling=False,
             all_card_defend_early_end=False,
         )
 
@@ -123,10 +127,14 @@ class PackageTest(unittest.TestCase):
             cards=[[{"value": "5", "suit": "spades", "id": 3}]],
             attack_forwarding={"is-enabled": True, "exact-count-match": False, "test": 3},  # invalid because of extra key
             player_card_count=7,
+            dynamic_card_count_scaling=False,
             all_card_defend_early_end=False,
         )
 
-    def test_008_PlayerDefensePackage_defense_list_validation(self):
+    def test_008_GameConfigPackage_from_GameConfig(self):
+        """test GameConfigPackage creation from GameConfig object"""
+
+    def test_009_PlayerDefensePackage_defense_list_validation(self):
         """test the defense list validation on the PlayerDefensePackage"""
         self.assertRaises(ValueError, PlayerDefensePackage, defense=[{"attack_id": 8, "defend_id": 7, "from_player": 4}])  # invalid extra key
         self.assertRaises(ValueError, PlayerDefensePackage, defense=[{"attack_id": 7}])  # missing key

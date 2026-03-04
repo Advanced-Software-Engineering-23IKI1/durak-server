@@ -10,6 +10,7 @@ class UserGameConfigPackage(BasePackage):
         "card-order": "card_order",
         "attack-forwarding": "attack_forwarding",
         "player-card-count": "player_card_count",
+        "dynamic-card-count-scaling": "dynamic_card_count_scaling",
         "all-card-defend-early-end": "all_card_defend_early_end",
     }
 
@@ -18,6 +19,7 @@ class UserGameConfigPackage(BasePackage):
         card_order: list[CardValue],
         attack_forwarding: dict[str, bool],
         player_card_count: int,
+        dynamic_card_count_scaling: bool,
         all_card_defend_early_end: bool,
     ):
         """UserGameConfigPackage
@@ -40,6 +42,7 @@ class UserGameConfigPackage(BasePackage):
         self.__card_order = card_order
         self.__attack_forwarding = attack_forwarding
         self.__player_card_count = player_card_count
+        self.__dynamic_card_count_scaling = dynamic_card_count_scaling
         self.__all_card_defend_early_end = all_card_defend_early_end
 
     def is_card_order_valid(self, card_order: list[CardValue]):
@@ -71,6 +74,7 @@ class UserGameConfigPackage(BasePackage):
             "card_order": [value.value for value in self.__card_order],
             "attack-forwarding": self.__attack_forwarding,
             "player-card-count": self.__player_card_count,
+            "dynamic-card-count-scaling": self.__dynamic_card_count_scaling,
             "all-card-defend-early-end": self.__all_card_defend_early_end,
         }
         return dict_repr
@@ -88,6 +92,10 @@ class UserGameConfigPackage(BasePackage):
         return self.__player_card_count
 
     @property
+    def dynamic_card_count_scaling(self) -> bool:
+        return self.__dynamic_card_count_scaling
+
+    @property
     def all_card_defend_early_end(self) -> bool:
         return self.__all_card_defend_early_end
 
@@ -95,13 +103,14 @@ class UserGameConfigPackage(BasePackage):
         return f"UserGameConfigPackage({self.__card_order}, {self.attack_forwarding}, {self.player_card_count}, {self.all_card_defend_early_end})"
 
     @staticmethod
-    def from_GameConfig(game_config: GameConfig) -> UserGameConfigPackage:
+    def from_GameConfig(game_config: GameConfig, dynamic_card_count_scaling: bool) -> UserGameConfigPackage:
         """generate a UserGameConfigPackage from a GameConfig object
         #! WARING: this method only uses 
         Users are responsible for ensuring the game_config has a player_card_count set
 
         Args:
             game_config (GameConfig): the game config
+            dynamic_card_count_scaling (bool): whether the card count scales dynamically
 
         Returns:
             UserGameConfigPackage: the package
@@ -114,6 +123,7 @@ class UserGameConfigPackage(BasePackage):
                 "exact-count-match": game_config.attack_forwarding_exact_count_match,
             },
             player_card_count=game_config.player_card_count,
+            dynamic_card_count_scaling=dynamic_card_count_scaling,
             all_card_defend_early_end=game_config.all_card_defend_early_end,
         )
         return package

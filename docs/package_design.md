@@ -35,6 +35,7 @@ packages sent from client to server
 | [start-game-session](#start-game-session)           | before game | event      | 1              |
 | [connect-to-game-session](#connect-to-game-session) | before game | event      | 1[^1]          |
 | [status-update](#status-update)                     | lobby       | event      | N              |
+| [user-game-config](#user-game-config)               | lobby       | event      | N              |
 | [player-attack](#player-attack)                     | game        | event      | N              |
 | [player-defense](#player-defense)                   | game        | event      | N              |
 | [player-surrender](#player-surrender)               | game        | event      | N              |
@@ -129,13 +130,14 @@ This package is sent when the host player changes the config
 	{
         "card-order": [
             "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"  // list encoding deck used and strength of values
-        ]
+        ],
         "attack-forwarding": {  // attack forwarding rules
             "is-enabled": true,  // global enable/disable
             "exact-count-match": false  // whether the exact amount of card attacking has to be matched for forwarding
         },
         "player-card-count": 7,  // amount of cards each player receives
-        "all-card-defend-early-end": false
+        "dynamic-card-count-scaling": true,  // whether the player-card-count should scale automatically
+        "all-card-defend-early-end": false,
 	}
 }
 ```
@@ -278,12 +280,14 @@ This package is sent periodically to indicate the current status of the lobby.
             {
                 "playername": "player1",
                 "player_id": 9,
-                "is-ready": true
+                "is-ready": true,
+                "can-modify-config": true
             },
             {
                 "playername": "player2",
                 "player_id": 0,
-                "is-ready": false
+                "is-ready": false,
+                "can-modify-config": false
             }
         ]
     }
@@ -354,6 +358,7 @@ This package is sent once before game start and every time the config is updated
         "exact-count-match": false  // whether the exact amount of card attacking has to be matched for forwarding
     },
     "player-card-count": 7,  // amount of cards each player receives
+    "dynamic-card-count-scaling": true,  // whether the player-card-count scales automatically
     "all-card-defend-early-end": false
 }
 ```
