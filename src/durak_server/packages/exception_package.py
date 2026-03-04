@@ -84,3 +84,25 @@ class InvalidGameCodeExceptionPackage(ExceptionPackage):
 
     def __repr__(self):
         return f"InvalidGameCodeExceptionPackage({self._code}, {str(self._details)})"
+
+
+class PermissionDeniedExceptionPackage(ExceptionPackage):
+    """Wrapper Class for permission denied
+
+    Args:
+        msg (str): the msg provided
+        details (Optional[dict], optional): additional details. Defaults to None.
+    """
+    def __init__(self, msg: str, details: Optional[dict] = None):
+        if not details:
+            details = {}
+        self._msg = msg
+        self._details = details
+        details = {
+            "msg": msg,
+            **details
+        }
+        super().__init__("PermissionDeniedExceptionPackage", details)
+
+    def __repr__(self):
+        return f"PermissionDeniedExceptionPackage({self._msg}, {str(self._details)})"

@@ -1,6 +1,13 @@
 from durak_server.packages.base import BasePackage
-from durak_server.packages.connect_to_game_session_package import ConnectToGameSessionPackage
-from durak_server.packages.exception_package import ExceptionPackage, PackageParsingExceptionPackage, InvalidGameCodeExceptionPackage
+from durak_server.packages.connect_to_game_session_package import (
+    ConnectToGameSessionPackage,
+)
+from durak_server.packages.exception_package import (
+    ExceptionPackage,
+    PackageParsingExceptionPackage,
+    InvalidGameCodeExceptionPackage,
+    PermissionDeniedExceptionPackage,
+)
 from durak_server.packages.game_start_package import GameStartPackage
 from durak_server.packages.lobby_status_package import LobbyStatusPackage
 from durak_server.packages.start_game_session_package import StartGameSessionPackage
@@ -31,7 +38,7 @@ PACKAGE_DICT = {
     "game-config": GameConfigPackage,
     "player-attack": PlayerAttackPackage,
     "player-defense": PlayerDefensePackage,
-    "user-game-config": UserGameConfigPackage
+    "user-game-config": UserGameConfigPackage,
 }
 
 
@@ -54,5 +61,6 @@ __all__ = [
     "GameConfigPackage",
     "PlayerAttackPackage",
     "PlayerDefensePackage",
-    "UserGameConfigPackage"
+    "UserGameConfigPackage",
+    "PermissionDeniedExceptionPackage"
 ]

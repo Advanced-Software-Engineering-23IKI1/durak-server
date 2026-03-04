@@ -8,6 +8,7 @@ import durak_server
 import time
 import durak_server.config
 from durak_server._typing import GamePackage
+from durak_server.config import BasicGameConfig
 
 import durak_server.packages
 
@@ -65,8 +66,9 @@ class GameSession:
         player_card_count = mapping_dict.get(len(self.players))
         if player_card_count is None:
             raise ValueError("player count too high for provided config")
+        old_player_card_count = self.game_config.player_card_count
         self.game_config.player_card_count = player_card_count
-        self._send_config()
+        return old_player_card_count == player_card_count
 
     def _send_config(self):
         self.broadcast(
@@ -83,8 +85,6 @@ class GameSession:
             if self.__dynamic_card_count_scaling and self.__player_count_has_changed:
                 config_has_changed = self._update_config()
 
-            # lobby-based game customization here
-
             # Receiving Player packages
             for player in self.players:
                 while received_package := player.read_package():
@@ -92,8 +92,17 @@ class GameSession:
                         case durak_server.packages.StatusUpdatePackage():
                             player.is_ready = received_package.is_ready
                             status_has_changed = True
+                        case durak_server.packages.UserGameConfigPackage():
+                            if not player.can_modify_config:
+                                player.send_package(durak_server.packages.PermissionDeniedExceptionPackage(msg="Player does not have permission to modify the GameConfig"))
+                            else:
+                                config = received_package.to_BasicGameConfig()
+                                self.game_config == config
+                                self.__dynamic_card_count_scaling = received_package.dynamic_card_count_scaling
+                                self._update_config()
+                                config_has_changed = True
                         case _:
-                            pass  # Logging
+                            pass  # logging
 
             # send config
             if config_has_changed:

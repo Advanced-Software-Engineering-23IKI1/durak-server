@@ -542,6 +542,23 @@ All packages may include additional attributes in the `details` and should be pa
 }
 ```
 
+<div id="PermissionDeniedExceptionPackage">
+<details>
+<summary>PermissionDeniedExceptionPackage</summary>
+
+```json
+{
+    "type": "exception",
+    "body": {
+        "name": "PermissionDeniedExceptionPackage",
+        "details": {
+            "msg": ""  // additional message
+        }
+    }
+}
+```
+
+
 </details>
 </div>
 

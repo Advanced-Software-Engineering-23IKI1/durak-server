@@ -1,3 +1,4 @@
+from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 from abc import ABC, abstractmethod
@@ -57,22 +58,27 @@ class CardDeck(ABC):
         card_id = 1
 
         for suit in CardSuit:
-            for value in self.values():
+            for value in self.values:
                 cards.append(Card(id=card_id, suit=suit, value=value))
                 card_id += 1
 
         return cards
 
+    @property
     @abstractmethod
     def values(self) -> list[CardValue]:
         """Return the card values used to generate the deck cards"""
         pass
 
     def __hash__(self):
-        return len(self.cards)
+        return hash(frozenset(self.values))
+
+    def __eq__(self, value: CardDeck) -> bool:
+        return frozenset(self.values) == frozenset(value.values)
 
 
 class Deck52(CardDeck):
+    @property
     def values(self) -> list[CardValue]:
         return [
             CardValue.TWO,
@@ -93,6 +99,7 @@ class Deck52(CardDeck):
 
 
 class Deck32(CardDeck):
+    @property
     def values(self) -> list[CardValue]:
         return [
             CardValue.SEVEN,
@@ -104,3 +111,19 @@ class Deck32(CardDeck):
             CardValue.K,
             CardValue.A,
         ]
+
+
+def Deck_creator(values: list[CardValue]) -> CardDeck:
+    """helper method to create a custom Deck using a list of CardValues
+
+    Args:
+        values (list[CardValue]): input list
+
+    Returns:
+        CardDeck: the custom Deck
+    """
+    class MyDeck(CardDeck):
+        def values(self) -> list[CardValue]:
+            return values
+        
+    return MyDeck

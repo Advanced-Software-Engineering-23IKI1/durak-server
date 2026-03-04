@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.join(repo_root_dir / "src"))
 from durak_server.packages import *
 from durak_server.player import PlayerGameStatus
 from durak_server.config import BasicGameConfig
+from durak_server.game.card import CardValue, Deck32
 
 
 class PackageTest(unittest.TestCase):
@@ -92,7 +93,9 @@ class PackageTest(unittest.TestCase):
         self.assertRaises(
             ValueError,
             GameConfigPackage,
-            cards=[{"value": "3", "suit": "spades", "id": 3}],  # invalid as no card group
+            cards=[
+                {"value": "3", "suit": "spades", "id": 3}
+            ],  # invalid as no card group
             attack_forwarding={"is-enabled": True, "exact-count-match": False},
             player_card_count=7,
             dynamic_card_count_scaling=False,
@@ -102,7 +105,9 @@ class PackageTest(unittest.TestCase):
         self.assertRaises(
             ValueError,
             GameConfigPackage,
-            cards=[[{"value": "3", "suit": "spades"}]],  # inner card object missing data
+            cards=[
+                [{"value": "3", "suit": "spades"}]
+            ],  # inner card object missing data
             attack_forwarding={"is-enabled": True, "exact-count-match": False},
             player_card_count=7,
             dynamic_card_count_scaling=False,
@@ -125,7 +130,11 @@ class PackageTest(unittest.TestCase):
             ValueError,
             GameConfigPackage,
             cards=[[{"value": "5", "suit": "spades", "id": 3}]],
-            attack_forwarding={"is-enabled": True, "exact-count-match": False, "test": 3},  # invalid because of extra key
+            attack_forwarding={
+                "is-enabled": True,
+                "exact-count-match": False,
+                "test": 3,
+            },  # invalid because of extra key
             player_card_count=7,
             dynamic_card_count_scaling=False,
             all_card_defend_early_end=False,
@@ -133,8 +142,94 @@ class PackageTest(unittest.TestCase):
 
     def test_008_GameConfigPackage_from_GameConfig(self):
         """test GameConfigPackage creation from GameConfig object"""
+        my_config = BasicGameConfig(
+            attack_forwarding=True,
+            attack_forwarding_exact_count_match=True,
+            all_card_defend_early_end=True,
+            card_order=[
+                CardValue._6,
+                CardValue._7,
+                CardValue._8,
+                CardValue._9,
+                CardValue.J,
+                CardValue._10,
+                CardValue.Q,
+                CardValue.K,
+                CardValue.A
+            ],
+            deck=Deck32(),
+            player_card_count=None,
+        )
+        my_package = GameConfigPackage.from_GameConfig(my_config, dynamic_card_count_scaling=True)
+        self.assertTrue(isinstance(my_package, GameConfigPackage))
+        self.assertEqual(my_config.attack_forwarding, my_package.attack_forwarding["is-enabled"])
+        self.assertEqual(my_config.attack_forwarding_exact_count_match, my_package.attack_forwarding["exact-count-match"])
+        self.assertEqual(my_config.all_card_defend_early_end, my_package.all_card_defend_early_end)
+        self.assertEqual(my_config.card_order, list(dict.fromkeys([group[0]["value"] for group in my_package.cards])))
 
     def test_009_PlayerDefensePackage_defense_list_validation(self):
         """test the defense list validation on the PlayerDefensePackage"""
-        self.assertRaises(ValueError, PlayerDefensePackage, defense=[{"attack_id": 8, "defend_id": 7, "from_player": 4}])  # invalid extra key
-        self.assertRaises(ValueError, PlayerDefensePackage, defense=[{"attack_id": 7}])  # missing key
+        self.assertRaises(
+            ValueError,
+            PlayerDefensePackage,
+            defense=[{"attack_id": 8, "defend_id": 7, "from_player": 4}],
+        )  # invalid extra key
+        self.assertRaises(
+            ValueError, PlayerDefensePackage, defense=[{"attack_id": 7}]
+        )  # missing key
+
+    def test_010_UserGameConfigPackage_from_GameConfig(self):
+        """test creating a UserGameConfigPackage from a GameConfig object"""
+        """test GameConfigPackage creation from GameConfig object"""
+        my_config = BasicGameConfig(
+            attack_forwarding=True,
+            attack_forwarding_exact_count_match=True,
+            all_card_defend_early_end=True,
+            card_order=[
+                CardValue._7,
+                CardValue._8,
+                CardValue._9,
+                CardValue.J,
+                CardValue._10,
+                CardValue.Q,
+                CardValue.K,
+                CardValue.A
+            ],
+            deck=Deck32(),
+            player_card_count=None,
+        )
+        my_package = UserGameConfigPackage.from_GameConfig(my_config, dynamic_card_count_scaling=True)
+        self.assertTrue(isinstance(my_package, UserGameConfigPackage))
+        self.assertEqual(my_config.attack_forwarding, my_package.attack_forwarding["is-enabled"])
+        self.assertEqual(my_config.attack_forwarding_exact_count_match, my_package.attack_forwarding["exact-count-match"])
+        self.assertEqual(my_config.all_card_defend_early_end, my_package.all_card_defend_early_end)
+        self.assertEqual(my_config.card_order, my_package.card_order)
+
+    def test_011_UserGameConfigPackage_to_GameConfig(self):
+        """test decoding a UserGameConfigPackage into a BasicGameConfig object"""
+        test_pkg = UserGameConfigPackage(
+            card_order=[
+                CardValue._7,
+                CardValue._8,
+                CardValue._9,
+                CardValue.J,
+                CardValue._10,
+                CardValue.Q,
+                CardValue.K,
+                CardValue.A,
+            ],
+            attack_forwarding={
+                "is-enabled": True,
+                "exact-count-match": False,
+            },
+            player_card_count=7,
+            dynamic_card_count_scaling=False,
+            all_card_defend_early_end=False,
+        )
+        my_config = test_pkg.to_BasicGameConfig()
+        self.assertTrue(isinstance(my_config, BasicGameConfig))
+        self.assertEqual(test_pkg.attack_forwarding["is-enabled"], my_config.attack_forwarding)
+        self.assertEqual(test_pkg.attack_forwarding["exact-count-match"], my_config.attack_forwarding_exact_count_match)
+        self.assertEqual(test_pkg.all_card_defend_early_end, my_config.all_card_defend_early_end)
+        self.assertEqual(test_pkg.card_order, my_config.card_order)
+

@@ -13,6 +13,7 @@ sys.path.insert(0, os.path.join(repo_root_dir / "src"))
 from durak_server.packages import *
 from durak_server.packages import Decoder
 from durak_server.exceptions import InvalidPackageTypeException, InvalidBodyException
+from durak_server.game.card import CardValue, Deck32
 from json import JSONDecodeError
 
 
@@ -70,7 +71,14 @@ class DecoderTest(unittest.TestCase):
         """test decoding the LobbyStatusPackage"""
         test_pkg = LobbyStatusPackage(
             gamecode="AE98",
-            players=[{"playername": "player1", "player_id": 10, "is-ready": True, "can-modify-config": False}],
+            players=[
+                {
+                    "playername": "player1",
+                    "player_id": 10,
+                    "is-ready": True,
+                    "can-modify-config": False,
+                }
+            ],
         )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
@@ -146,6 +154,33 @@ class DecoderTest(unittest.TestCase):
 
     def test_017_decode_PlayerDefensePackage(self):
         """test decoding the PlayerDefensePackage"""
-        test_pkg = PlayerDefensePackage([{"attack_id": 8, "defend_id": 9}, {"attack_id": 2, "defend_id": 0}])
+        test_pkg = PlayerDefensePackage(
+            [{"attack_id": 8, "defend_id": 9}, {"attack_id": 2, "defend_id": 0}]
+        )
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
+
+    def test_018_decode_UserGameConfigPackage(self):
+        """test decoding the UserGameConfigPackage"""
+        test_pkg = UserGameConfigPackage(
+            card_order=[
+                CardValue._7,
+                CardValue._8,
+                CardValue._9,
+                CardValue.J,
+                CardValue._10,
+                CardValue.Q,
+                CardValue.K,
+                CardValue.A,
+            ],
+            attack_forwarding={
+                "is-enabled": True,
+                "exact-count-match": False,
+            },
+            player_card_count=7,
+            dynamic_card_count_scaling=False,
+            all_card_defend_early_end=False,
+        )
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)
+
