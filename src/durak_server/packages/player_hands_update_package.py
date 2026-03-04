@@ -44,7 +44,7 @@ class PlayerHandsUpdatePackage(BasePackage):
     def is_player_hands_list_valid(self, player_hands: list[dict]) -> bool:
         """check if player hands list is in the defined format
         This is performing only structural checks.
-        More information on the required strcture and data can be found in the package documentation
+        More information on the required structure and data can be found in the package documentation
 
         Args:
             player_hands (list[dict]): input player_hands

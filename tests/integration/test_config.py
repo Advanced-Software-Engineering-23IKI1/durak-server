@@ -19,7 +19,7 @@ from tests.tcp_test_client import TcpTestClient
 from tests.integration import IP, PORT, skip_if_advanced, skip_unless_advanced
 from tests.integration.server_setup import SERVER
 
-class TestBasicConnection(unittest.TestCase):
+class TestConfigHandling(unittest.TestCase):
 
     def test_001_config_on_session_creation(self):
         """test sending config on the initial lobby creation

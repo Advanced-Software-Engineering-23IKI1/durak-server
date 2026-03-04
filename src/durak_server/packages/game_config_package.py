@@ -46,7 +46,7 @@ class GameConfigPackage(BasePackage):
     ) -> bool:
         """check if cards list is in the defined format
         This is performing only structural checks.
-        More information on the required strcture and data can be found in the package documentation
+        More information on the required structure and data can be found in the package documentation
 
         Args:
             cards (list[list[dict[str, Union[str, int]]]]): input list
@@ -69,7 +69,7 @@ class GameConfigPackage(BasePackage):
     ) -> bool:
         """check if attack_forwarding dict is in the defined format
         This is performing only structural checks.
-        More information on the required strcture and data can be found in the package documentation
+        More information on the required structure and data can be found in the package documentation
 
         Args:
             attack_forwarding (dict[str, bool]): input dict
