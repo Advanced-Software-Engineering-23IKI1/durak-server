@@ -105,7 +105,7 @@ class GameConfigPackage(BasePackage):
     @property
     def player_card_count(self) -> int:
         return self.__player_card_count
-    
+
     @property
     def dynamic_card_count_scaling(self) -> bool:
         return self.__dynamic_card_count_scaling

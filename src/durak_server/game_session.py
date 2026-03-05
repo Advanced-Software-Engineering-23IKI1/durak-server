@@ -108,6 +108,10 @@ class GameSession:
             if config_has_changed:
                 self._send_config()
 
+            # send config
+            if config_has_changed:
+                self._send_config()
+
             # Sending Lobby Status
             if status_has_changed:
                 self._send_status_update()
@@ -143,9 +147,12 @@ class GameSession:
 
         for player in self.players:
             # Send Game Starting Package to players
-            player.send_package(durak_server.packages.GameStartPackage())
+            player.send_package(
+                durak_server.packages.GameStartPackage()
+            )
 
         self._logger.info(f"Session [{self.code}] switched state to running")
+
 
     def game_loop(self):
         scoreboard = {}
