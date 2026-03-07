@@ -107,7 +107,6 @@ class UserGameConfigPackage(BasePackage):
         game_config: GameConfig, dynamic_card_count_scaling: bool
     ) -> UserGameConfigPackage:
         """generate a UserGameConfigPackage from a GameConfig object
-        #! WARING: this method only uses
         Users are responsible for ensuring the game_config has a player_card_count set
 
         Args:

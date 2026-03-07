@@ -97,7 +97,7 @@ class GameSession:
                                 player.send_package(durak_server.packages.PermissionDeniedExceptionPackage(msg="Player does not have permission to modify the GameConfig"))
                             else:
                                 config = received_package.to_BasicGameConfig()
-                                self.game_config == config
+                                self.game_config = config
                                 self.__dynamic_card_count_scaling = received_package.dynamic_card_count_scaling
                                 self._update_config()
                                 config_has_changed = True
