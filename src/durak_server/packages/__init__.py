@@ -1,6 +1,13 @@
 from durak_server.packages.base import BasePackage
-from durak_server.packages.connect_to_game_session_package import ConnectToGameSessionPackage
-from durak_server.packages.exception_package import ExceptionPackage, PackageParsingExceptionPackage, InvalidGameCodeExceptionPackage
+from durak_server.packages.connect_to_game_session_package import (
+    ConnectToGameSessionPackage,
+)
+from durak_server.packages.exception_package import (
+    ExceptionPackage,
+    PackageParsingExceptionPackage,
+    InvalidGameCodeExceptionPackage,
+    PermissionDeniedExceptionPackage,
+)
 from durak_server.packages.game_start_package import GameStartPackage
 from durak_server.packages.lobby_status_package import LobbyStatusPackage
 from durak_server.packages.start_game_session_package import StartGameSessionPackage
@@ -13,6 +20,7 @@ from durak_server.packages.table_update_package import TableUpdatePackage
 from durak_server.packages.game_config_package import GameConfigPackage
 from durak_server.packages.player_attack_package import PlayerAttackPackage
 from durak_server.packages.player_defense_package import PlayerDefensePackage
+from durak_server.packages.user_game_config_package import UserGameConfigPackage
 
 # dictionairy to map package names to actual package classes
 PACKAGE_DICT = {
@@ -29,7 +37,8 @@ PACKAGE_DICT = {
     "table-update": TableUpdatePackage,
     "game-config": GameConfigPackage,
     "player-attack": PlayerAttackPackage,
-    "player-defense": PlayerDefensePackage
+    "player-defense": PlayerDefensePackage,
+    "user-game-config": UserGameConfigPackage,
 }
 
 
@@ -51,5 +60,7 @@ __all__ = [
     "TableUpdatePackage",
     "GameConfigPackage",
     "PlayerAttackPackage",
-    "PlayerDefensePackage"
+    "PlayerDefensePackage",
+    "UserGameConfigPackage",
+    "PermissionDeniedExceptionPackage"
 ]
