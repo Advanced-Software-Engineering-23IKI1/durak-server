@@ -8,12 +8,12 @@ class PlayerStatusPackage(BasePackage):
         "statuses": "statuses"
     }
 
-    def __init__(self, statuses: list[dict[str, Union[int, bool]]]):
+    def __init__(self, statuses: list[dict[str, Union[int, str]]]):
         """PlayerStatusPackage
         see the package documentation for more information
 
         Args:
-            statuses (list[dict[str, Union[int, bool]]]): list of players with their readiness status
+            statuses (list[dict[str, Union[int, str]]]): list of players with their readiness status
 
         Raises:
             ValueError: on invalid player list
@@ -22,7 +22,7 @@ class PlayerStatusPackage(BasePackage):
             raise ValueError("player status list is not valid")
         self.__statuses = statuses
 
-    def is_status_list_valid(self, statuses: list[dict[str, Union[int, bool]]]) -> bool:
+    def is_status_list_valid(self, statuses: list[dict[str, Union[int, str]]]) -> bool:
         """check if player status list is in the defined format
         More information on the required structure and data can be found in the package documentation
 
