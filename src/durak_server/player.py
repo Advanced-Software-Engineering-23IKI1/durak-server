@@ -48,6 +48,7 @@ class Player:
         self._shop = None
         self._player_game_status = PlayerGameStatus.Unknown
         self._hand = []
+        self._can_modify_config = False
 
     @property
     def client(self) -> TcpClient:
@@ -76,30 +77,6 @@ class Player:
         self._logger.debug(f"Status changed. New status: {self._is_ready}")
 
     @property
-    def currency(self) -> float:
-        return self._currency
-
-    @currency.setter
-    def currency(self, currency: float) -> None:
-        self._currency = currency
-
-    @property
-    def points(self) -> float:
-        return self._points
-
-    @points.setter
-    def points(self, points: float) -> None:
-        self._points = points
-
-    @property
-    def earn_rate(self) -> float:
-        return self._earn_rate
-
-    @earn_rate.setter
-    def earn_rate(self, earn_rate: float) -> float:
-        self._earn_rate = earn_rate
-
-    @property
     def gamecode(self) -> str:
         return self._gamecode
     
@@ -109,13 +86,12 @@ class Player:
         self._update_logger()
 
     @property
-    def click_modifier(self) -> float:
-        return self._click_modifier
-
-    @click_modifier.setter
-    def click_modifier(self, click_modifier: float) -> float:
-        self._click_modifier = click_modifier
-
+    def can_modify_config(self) -> bool:
+        return self._can_modify_config
+    
+    @can_modify_config.setter
+    def can_modify_config(self, flag: bool):
+        self._can_modify_config = flag
 
     def read_package(self, **kwargs) -> Optional[GamePackage]:
         """read a package if available (wraps TCPClient.read_package())
