@@ -136,5 +136,10 @@ class TcpTestClient:
 
     def shutdown(self):
         self._is_running = False
-        self._client.shutdown(socket.SHUT_RDWR)
+        try:
+            self._client.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            pass
+        finally:
+            self._client.close()
 

@@ -1,4 +1,5 @@
 import socket
+from contextlib import suppress
 from typing import Optional
 from durak_server._typing import GamePackage
 from durak_server.packages import Decoder, PackageParsingExceptionPackage
@@ -48,10 +49,11 @@ class TcpClient:
                 try:
                     pkg = self._outgoing_queue.pop(0)
                     self._client.sendall((pkg + TcpClient.PACKET_SEPERATOR).encode())
-                except:
+                except OSError:
                     if self._logger:
                         self._logger.info("lost connection")
                     self.is_running = False
+                    self._close_socket()
                     return
                 else:
                     self._logger.debug(f"Sent package: {pkg}")
@@ -63,13 +65,19 @@ class TcpClient:
         """
         self.is_running = False
         self.thread.join()
+        self._close_socket()
+        if self._logger:
+            self._logger.debug("Closing client.")
 
-        try:
+    def _close_socket(self):
+        if self._client.fileno() == -1:
+            return
+
+        with suppress(OSError):
             self._client.shutdown(socket.SHUT_RDWR)
-        except:
-            pass
-        self._client.close()
-        self._logger.debug("Closing client.")
+
+        with suppress(OSError):
+            self._client.close()
 
 
     def has_content(self) -> bool:
@@ -92,6 +100,7 @@ class TcpClient:
                 self._text += data.decode()
         except (ConnectionResetError, ConnectionAbortedError):
             self.is_running = False
+            self._close_socket()
             if self._logger:
                 self._logger.info("lost connection")
             return False

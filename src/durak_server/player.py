@@ -41,11 +41,9 @@ class Player:
             self._player_id = player_id
         self._name = name
         self._is_ready = is_ready
-        self._points = 0
         self._gamecode = gamecode
         self._logger = PlayerLogger(self._name, self._gamecode, self._client.address[0], self._client.address[1])
         self._client.logger = self._logger  # sharing the player logger with the underlying TcpClient
-        self._shop = None
         self._player_game_status = PlayerGameStatus.Unknown
         self._hand = []
         self._can_modify_config = False
@@ -86,12 +84,28 @@ class Player:
         self._update_logger()
 
     @property
+    def hand(self) -> list[int]:
+        return self._hand
+    
+    @hand.setter
+    def hand(self, hand: list[int]):
+        self._hand = hand
+        
+    @property
     def can_modify_config(self) -> bool:
         return self._can_modify_config
     
     @can_modify_config.setter
     def can_modify_config(self, flag: bool):
         self._can_modify_config = flag
+
+    @property
+    def game_status(self) -> PlayerGameStatus:
+        return self._player_game_status
+
+    @game_status.setter
+    def game_status(self, status: PlayerGameStatus):
+        self._player_game_status = status
 
     def read_package(self, **kwargs) -> Optional[GamePackage]:
         """read a package if available (wraps TCPClient.read_package())
