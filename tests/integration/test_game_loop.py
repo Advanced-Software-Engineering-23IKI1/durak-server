@@ -164,7 +164,7 @@ class TestGameStartRoutine(unittest.TestCase):
 
 			status_1 = self._wait_for_package_type(client_1, PlayerStatusPackage, timeout_s=4.0)
 			status_2 = self._wait_for_package_type(client_2, PlayerStatusPackage, timeout_s=4.0)
-
+			
 			self.assertIsNotNone(status_1)
 			self.assertIsNotNone(status_2)
 			self.assertEqual(len(status_1.statuses), 2)
@@ -179,6 +179,7 @@ class TestGameStartRoutine(unittest.TestCase):
 
 			self.assertEqual(attacker_count_1, 1)
 			self.assertEqual(attacker_count_2, 1)
+   
 		finally:
 			if client_1:
 				self._safe_shutdown(client_1)
@@ -194,6 +195,10 @@ class TestGameStartRoutine(unittest.TestCase):
 
 			hands_1 = self._wait_for_package_type(client_1, PlayerHandsUpdatePackage, timeout_s=4.0)
 			hands_2 = self._wait_for_package_type(client_2, PlayerHandsUpdatePackage, timeout_s=4.0)
+   
+   			
+			deck = config_1.cards
+			card_count = len([card for group in deck for card in group])
 
 			self.assertIsNotNone(hands_1)
 			self.assertIsNotNone(hands_2)
@@ -207,9 +212,10 @@ class TestGameStartRoutine(unittest.TestCase):
 			self.assertEqual(hands_1.player_hands[0]["card_count"], len(hands_2.hand))
 			self.assertEqual(hands_2.player_hands[0]["card_count"], len(hands_1.hand))
 
+
 			# Total cards: player hands + draw pile + trump (trump does not count towards draw pile count but is still part of the deck and should be included in the total card count)
 			total_cards_from_client_1 = len(hands_1.hand) + len(hands_2.hand) + hands_1.draw_pile + (1 if hands_1.trump else 0)
-			self.assertIn(total_cards_from_client_1, [32, 52])
+			self.assertEqual(total_cards_from_client_1, card_count)
 		finally:
 			if client_1:
 				self._safe_shutdown(client_1)
