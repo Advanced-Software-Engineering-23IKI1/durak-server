@@ -59,7 +59,7 @@ class TcpServer:
 
             # Remove cleaned game sessions
             cleaned_sessions = [
-                code for code, session in self.game_sessions.items()
+                code for code, session in list(self.game_sessions.items())
                 if session.state == GameState.Cleaned
             ]
             for code in cleaned_sessions:
@@ -70,7 +70,7 @@ class TcpServer:
         """Loop listening for packages on the players currently assigned to the Tcp_server
         """
         while self._is_server_running:
-            for player in self.players:
+            for player in list(self.players):
 
                 if not (package := player.read_package()):
                     continue
@@ -98,7 +98,7 @@ class TcpServer:
 
             time.sleep(0.2)
 
-    def stop_server(self, signum: Optional[int] = None, frame: Optional = None):
+    def stop_server(self, signum: Optional[int] = None, frame: Optional[object] = None):
         """Stops the Tcp_server and the running threads on Ctrl-C
 
         Args:
@@ -112,10 +112,10 @@ class TcpServer:
         self._logger.info("Stopping server ...")
         self._is_server_running = False
 
-        for player in self.players:
+        for player in list(self.players):
             player.client.shutdown()
 
-        for session in self.game_sessions.values():
+        for session in list(self.game_sessions.values()):
             # Skip cleaned sessions
             if session.state == GameState.Cleaned:
                 continue

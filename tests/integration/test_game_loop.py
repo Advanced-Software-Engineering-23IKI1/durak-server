@@ -207,8 +207,8 @@ class TestGameStartRoutine(unittest.TestCase):
 			self.assertEqual(hands_1.player_hands[0]["card_count"], len(hands_2.hand))
 			self.assertEqual(hands_2.player_hands[0]["card_count"], len(hands_1.hand))
 
-			# Total cards: player hands + draw pile (trump is on bottom of draw pile)
-			total_cards_from_client_1 = len(hands_1.hand) + len(hands_2.hand) + hands_1.draw_pile
+			# Total cards: player hands + draw pile + trump (trump does not count towards draw pile count but is still part of the deck and should be included in the total card count)
+			total_cards_from_client_1 = len(hands_1.hand) + len(hands_2.hand) + hands_1.draw_pile + (1 if hands_1.trump else 0)
 			self.assertIn(total_cards_from_client_1, [32, 52])
 		finally:
 			if client_1:

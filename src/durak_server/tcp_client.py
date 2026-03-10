@@ -52,6 +52,7 @@ class TcpClient:
                     if self._logger:
                         self._logger.info("lost connection")
                     self.is_running = False
+                    self._close_socket()
                     return
                 else:
                     self._logger.debug(f"Sent package: {pkg}")
@@ -63,13 +64,19 @@ class TcpClient:
         """
         self.is_running = False
         self.thread.join()
+        self._close_socket()
+        if self._logger:
+            self._logger.debug("Closing client.")
 
+    def _close_socket(self):
         try:
             self._client.shutdown(socket.SHUT_RDWR)
         except:
             pass
-        self._client.close()
-        self._logger.debug("Closing client.")
+        try:
+            self._client.close()
+        except:
+            pass
 
 
     def has_content(self) -> bool:
@@ -92,6 +99,7 @@ class TcpClient:
                 self._text += data.decode()
         except (ConnectionResetError, ConnectionAbortedError):
             self.is_running = False
+            self._close_socket()
             if self._logger:
                 self._logger.info("lost connection")
             return False
