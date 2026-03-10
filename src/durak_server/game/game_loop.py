@@ -31,7 +31,7 @@ class GameLoop:
     def game_start_routine(self):
         self._drawpile = DrawPile(self._game_config.cards)
         self._trump_suit = self._game_config.trump
-        self._trump_card = self._drawpile.draw_trump(self._trump_suit)
+        self._trump_card = self._drawpile.trump_card
         
         # distributing cards to players
         for player in self._players:

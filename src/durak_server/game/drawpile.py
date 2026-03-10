@@ -5,10 +5,14 @@ from random import shuffle
 
 
 class DrawPile:
-    def __init__(self, cards: list[Card]):
+    def __init__(self, cards: list[Card], trump_suit: CardSuit):
         shuffle(cards) # this is inplace
         self._cards = deque(cards)
-        self._trump_card = None
+        self._trump_card = self._draw_trump(trump_suit)
+        
+    @property
+    def trump_card(self) -> Card:
+        return self._trump_card
 
     def draw(self, count: int) -> list[Card]:
         """Draw cards from the draw pile
@@ -32,8 +36,8 @@ class DrawPile:
                 break
         return drawn_cards
     
-    # NOTE: This could theoretically be called in the constructor, thoughts?
-    def draw_trump(self, suit: CardSuit) -> Card:
+    
+    def _draw_trump(self, suit: CardSuit) -> Card:
         
         """Draws first card from the pile with matching suit and sets it as trump card. If no card with the given suit is found, None is returned and no card is set as trump card.
 
