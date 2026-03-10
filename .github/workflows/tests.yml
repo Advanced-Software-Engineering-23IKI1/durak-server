@@ -40,7 +40,7 @@ jobs:
 
   post-coverage:
     runs-on: ubuntu-latest
-    needs: integration_tests
+    needs: integration-tests
     permissions:
       pull-requests: write
       contents: read
