@@ -90,12 +90,22 @@ class Player:
     @hand.setter
     def hand(self, hand: list[int]):
         self._hand = hand
+        
+    @property
     def can_modify_config(self) -> bool:
         return self._can_modify_config
     
     @can_modify_config.setter
     def can_modify_config(self, flag: bool):
         self._can_modify_config = flag
+
+    @property
+    def game_status(self) -> PlayerGameStatus:
+        return self._player_game_status
+
+    @game_status.setter
+    def game_status(self, status: PlayerGameStatus):
+        self._player_game_status = status
 
     def read_package(self, **kwargs) -> Optional[GamePackage]:
         """read a package if available (wraps TCPClient.read_package())

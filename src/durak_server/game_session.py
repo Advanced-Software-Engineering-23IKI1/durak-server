@@ -9,6 +9,8 @@ import time
 import durak_server.config
 from durak_server._typing import GamePackage
 from durak_server.config import BasicGameConfig
+from durak_server.game.game_loop import GameLoop
+
 
 import durak_server.packages
 
@@ -26,6 +28,7 @@ class GameSession:
         else:
             self.__dynamic_card_count_scaling = False
         self.__player_count_has_changed = True
+        self._game_loop_engine = None
 
         # Start the game lobby loop
         self.thread = Thread(target=self.lobby_loop)
@@ -151,11 +154,15 @@ class GameSession:
                 durak_server.packages.GameStartPackage()
             )
 
+        self._game_loop_engine = GameLoop(self.game_config, self.players)
+
         self._logger.info(f"Session [{self.code}] switched state to running")
 
 
     def game_loop(self):
-        scoreboard = {}
+        if self._game_loop_engine is not None:
+            self._game_loop_engine.loop()
+
         while self.state is GameState.Running:
 
             # Read Player packages

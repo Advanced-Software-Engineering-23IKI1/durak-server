@@ -27,7 +27,8 @@ class TestServer:
         self.server.start()
 
     def stop(self):
-        self.server.stop_server()
+        if self.server is not None:
+            self.server.stop_server()
         self.server_thread.join()
 
 

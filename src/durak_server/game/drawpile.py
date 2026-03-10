@@ -47,8 +47,6 @@ class DrawPile:
         Returns:
             Card: The drawn trump card
         """
-        if self._trump_card is not None:
-            return self._trump_card # already drawn
         
         for card in self._cards:
             if card.suit == suit:
@@ -60,7 +58,7 @@ class DrawPile:
         
             
     def __len__(self):
-        return len(self._cards)
+        return len(self._cards) - 1 # the trump card is not part of the draw pile, it is drawn at the start of the game and placed aside
         
         
     

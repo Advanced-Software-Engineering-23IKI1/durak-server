@@ -13,6 +13,10 @@ class GameLoop:
         self._players = tuple(players) 
         self.game_start_routine()
 
+    @property
+    def players(self) -> tuple[Player, ...]:
+        return self._players
+
     def broadcast(self, package):
         for player in self._players:
             player.send_package(package)
@@ -21,16 +25,17 @@ class GameLoop:
     def broadcast_player_hands_update(self):
         for player in self.players:
             player.send_package(durak_server.packages.PlayerHandsUpdatePackage(
-                hand=player.hand,
-                player_hands=[{"player_id": other_player.id, "card_count": len(other_player.hand)} for other_player in self.players if other_player != player],
+                hand=[card.id for card in player.hand],
+                player_hands=[{"player_id": other_player.player_id, "card_count": len(other_player.hand)} for other_player in self.players if other_player != player],
                 draw_pile=len(self._drawpile),
                 trump=self._trump_card.id if self._trump_card else None,
-                player_order=[p.id for p in self._players]
+                player_order=[p.player_id for p in self._players]
             ))
 
     def game_start_routine(self):
-        self._drawpile = DrawPile(self._game_config.cards)
         self._trump_suit = self._game_config.trump
+        deck_cards = [card for card_group in self._game_config.cards for card in card_group]
+        self._drawpile = DrawPile(deck_cards, self._trump_suit)
         self._trump_card = self._drawpile.trump_card
         
         # distributing cards to players
@@ -42,7 +47,7 @@ class GameLoop:
         self._players[0].game_status = PlayerGameStatus.Attacker
         self.broadcast(durak_server.packages.PlayerStatusPackage(
             statuses=[{
-                "player_id": player.id,
+                "player_id": player.player_id,
                 "status": player.game_status
             } for player in self._players]
         ))
