@@ -14,7 +14,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: start docker compose unit tests
-        run: docker compose up --build --exit-code-from unit_tests unit_tests
+        run: docker compose up --build --exit-code-from unit_tests unit_tests | tee docker-output_unit.txt
+
+      - name: add output to summary
+        run: |
+          echo "## docker unit tests output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat docker-output_unit.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: cleanup
         if: always()
@@ -29,7 +36,14 @@ jobs:
         uses: actions/checkout@v4
 
       - name: start docker compose integration tests
-        run: docker compose up --build --exit-code-from integration_tests integration_tests
+        run: docker compose up --build --exit-code-from integration_tests integration_tests | tee docker-output_integration.txt
+
+      - name: add output to summary
+        run: |
+          echo "## docker integration tests output" >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+          cat docker-output_integration.txt >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
 
       - name: cleanup
         if: always()
