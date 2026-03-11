@@ -26,23 +26,35 @@ class TestLobby(unittest.TestCase):
         """check if a new game session is created when the correct package is sent"""
         client = TcpTestClient(IP, PORT)
         client.send_package(StartGameSessionPackage("player_1"))
-        response = None
-        while not response:
-            response = client.read_package()
-        self.assertTrue(isinstance(response, LobbyStatusPackage))
-        self.assertEqual(len(response.players), 1)
-        self.assertFalse(response.players[0]["is-ready"])
+        pkg_list = []
+        for _ in range(2):
+            response = None
+            while not response:
+                response = client.read_package()
+            pkg_list.append(response)
+        self.assertTrue(isinstance(pkg_list[0], LobbyJoinConfirmationPackage))
+        self.assertTrue(isinstance(pkg_list[1], LobbyStatusPackage))
+        self.assertEqual(len(pkg_list[1].players), 1)
+        self.assertFalse(pkg_list[1].players[0]["is-ready"])
 
     def test_002_join_game_session(self):
         """test joining a game session"""
         client = TcpTestClient(IP, PORT)
         client.send_package(StartGameSessionPackage("player_1"))
-        response = None
-        while not response:
-            response = client.read_package()
-        gamecode = response.gamecode
+        pkg_list = []
+        for _ in range(2):
+            response = None
+            while not response:
+                response = client.read_package()
+            pkg_list.append(response)
+        gamecode = pkg_list[1].gamecode
         client2 = TcpTestClient(IP, PORT)
         client2.send_package(ConnectToGameSessionPackage(gamecode, "player_2"))
+        response = None
+        while not response:
+            response = client2.read_package()
+        self.assertTrue(isinstance(response, LobbyJoinConfirmationPackage))
+        self.assertNotEqual(pkg_list[0].player_id, response.player_id)
         response = None
         loop_enter = datetime.datetime.now()
         while not response:
@@ -67,6 +79,8 @@ class TestLobby(unittest.TestCase):
         response = None
         while not response:
             response = client.read_package()
+            if isinstance(response, LobbyJoinConfirmationPackage):
+                response = None
         gamecode = response.gamecode
         client2 = TcpTestClient(IP, PORT)
         client2.send_package(ConnectToGameSessionPackage(gamecode, "player_2"))
