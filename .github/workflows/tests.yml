@@ -16,14 +16,16 @@ jobs:
       - name: start docker compose unit tests
         run: docker compose up --build --exit-code-from unit_tests unit_tests | tee docker-output_unit.txt
 
-      - name: add output to summary
-        run: |
+      - name: upload unit tests output
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-tests-output
+          path: docker-output_unit.txt
 
       - name: cleanup
         if: always()
         run: docker compose down -v
-
-  
+ 
   integration-tests:
     runs-on: ubuntu-latest
     needs: unit-tests
@@ -33,6 +35,12 @@ jobs:
 
       - name: start docker compose integration tests
         run: docker compose up --build --exit-code-from integration_tests integration_tests | tee docker-output_integration.txt
+
+      - name: upload integration tests output
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-tests-output
+          path: docker-output_integration.txt
 
       - name: cleanup
         if: always()
@@ -50,26 +58,37 @@ jobs:
         with:
           fetch-depth: ${{github.event_name == 'pull_request' && 2 || 0}}
 
+      - name: download unit tests outpout
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-tests-output
+
+      - name: download integration tests outpout
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-tests-output
+
       - name: get changed files
         id: changed-files
         run: |
-          if ${{github.event_name == 'pull_request'}}; then
+          if [ "${{github.event_name}}" = "pull_request" ]; then
             changed_files=$(git diff --name-only HEAD^1 HEAD | xargs)
           else
             changed_files=$(git diff --name-only ${{github.event.before}} ${{github.event.after}} | xargs)
           fi
+          echo "changed_files=$changed_files" >> $GITHUB_OUTPUT
 
       - name: get coverage 
         run: |
           grep -E Name docker-output_unit.txt > coverage.txt
-          for file in ${{steps.changed-files.output.changed_files}}; do
-            grep -E $file docker-output_unit.txt >> coverage.txt
+          for file in ${{steps.changed-files.outputs.changed_files}}; do
+            grep -E "$file" docker-output_unit.txt >> coverage.txt
           done
           grep -E TOTAL docker-output_unit.txt >> coverage.txt
           printf '\n' >> coverage.txt
           grep -E Name docker-output_integration.txt >> coverage.txt
-          for file in ${{steps.changed-files.output.changed_files}}; do
-            grep -E $file docker-output_integration.txt >> coverage.txt
+          for file in ${{steps.changed-files.outputs.changed_files}}; do
+            grep -E "$file" docker-output_integration.txt >> coverage.txt
           done
           grep -E TOTAL docker-output_integration.txt >> coverage.txt
 
@@ -77,12 +96,12 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const fs = request("fs")
-            const body = fs.readFileSync("context.txt", "utf8")
-
+            const fs = require("fs")
+            const body = fs.readFileSync("coverage.txt", "utf8")
+            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
-              repo: contex.repo.repo,
+              repo: context.repo.repo,
               body: body
             })
