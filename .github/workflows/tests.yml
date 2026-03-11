@@ -61,17 +61,17 @@ jobs:
         with:
           fetch-depth: ${{github.event_name == 'pull_request' && 2 || 0}}
 
-      - name: download unit tests outpout
+      - name: download unit tests output
         uses: actions/download-artifact@v4
         with:
           name: unit-tests-output
-          path: .
+          path: unit-tests-output
 
       - name: download integration tests outpout
         uses: actions/download-artifact@v4
         with:
           name: integration-tests-output
-          path: .
+          path: integration-tests-output
 
       - name: get changed files
         id: changed-files
@@ -85,17 +85,17 @@ jobs:
 
       - name: get coverage 
         run: |
-          grep -E Name docker-output_unit.txt > coverage.txt
+          grep -E Name unit-tests-output/docker-output_unit.txt > coverage.txt
           for file in ${{steps.changed-files.outputs.changed_files}}; do
-            grep -E "$file" docker-output_unit.txt >> coverage.txt
+            grep -E "$file" unit-tests-output/docker-output_unit.txt >> coverage.txt
           done
-          grep -E TOTAL docker-output_unit.txt >> coverage.txt
+          grep -E TOTAL unit-tests-output/docker-output_unit.txt >> coverage.txt
           printf '\n' >> coverage.txt
-          grep -E Name docker-output_integration.txt >> coverage.txt
+          grep -E Name integration-tests-output/docker-output_integration.txt >> coverage.txt
           for file in ${{steps.changed-files.outputs.changed_files}}; do
-            grep -E "$file" docker-output_integration.txt >> coverage.txt
+            grep -E "$file" integration-tests-output/docker-output_integration.txt >> coverage.txt
           done
-          grep -E TOTAL docker-output_integration.txt >> coverage.txt
+          grep -E TOTAL integration-tests-output/docker-output_integration.txt >> coverage.txt
 
       - name: create pr comment
         uses: actions/github-script@v7
