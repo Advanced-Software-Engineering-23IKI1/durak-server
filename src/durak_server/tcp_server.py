@@ -84,8 +84,8 @@ class TcpServer:
                     session.add_player(player)
                     self.players.remove(player)
                 elif isinstance(package, ConnectToGameSessionPackage):
-                    if package.gamecode in self.game_sessions.keys():
-                        player.gamecode = package.gamecode
+                    if package.gamecode.lower() in self.game_sessions.keys():
+                        player.gamecode = package.gamecode.lower()
                         player.name = package.playername
                         self.game_sessions[package.gamecode].add_player(player)
                         self.players.remove(player)

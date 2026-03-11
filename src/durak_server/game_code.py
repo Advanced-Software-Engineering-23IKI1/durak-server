@@ -1,7 +1,11 @@
 from random import choice
-from string import ascii_uppercase, digits
+from string import ascii_lowercase, digits
 
-_GAME_CODE_CHARACTERS = ascii_uppercase + digits
+use_letters = ascii_lowercase.replace("o", "")
+use_letters = use_letters.replace("l", "")
+use_digits = digits.replace("0", "")
+use_digits = use_digits.replace("1", "")
+_GAME_CODE_CHARACTERS = use_letters + use_digits
 
 _USED_GAME_CODES = set()
 
