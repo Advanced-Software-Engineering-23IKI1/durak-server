@@ -4,6 +4,7 @@ import coverage
 import unittest
 from tests.integration import ADVANCED_TESTS
 from tests.integration import server_setup
+from sys import exit
 
 def main():
     cov = coverage.Coverage()
@@ -24,6 +25,7 @@ def main():
         cov.save()
         cov.report()
 
+        exit(not result.wasSuccessful())       
 
 if __name__ == "__main__":
     main()
