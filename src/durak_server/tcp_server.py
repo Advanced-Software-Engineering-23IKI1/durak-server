@@ -147,5 +147,6 @@ if __name__ == "__main__":
     from durak_server import CONFIG
     host = CONFIG.get("server", "HOST")
     port = int(CONFIG.get("server", "PORT").strip() or "0")
+    print("test")
 
     TcpServer(host, port)
