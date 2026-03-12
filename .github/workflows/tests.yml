@@ -167,11 +167,10 @@ jobs:
             const coverage = fs.readFileSync("coverage.md", "utf8")
             const tests_ran = fs.readFileSync("tests_ran.txt", "utf8")
 
-            const body = coverage #+ "\n\n### Tests ran:\n" + tests_ran
-            
+           
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: body
+              body: coverage
             })
