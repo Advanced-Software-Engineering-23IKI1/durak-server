@@ -63,7 +63,7 @@ class GameSession:
                 durak_server.packages.LobbyStatusPackage(self.code, players=player_list)
             )
 
-    def _update_config(self) -> bool:
+    def _update_card_count(self) -> bool:
         self.update_player_list()
         mapping_dict = durak_server.config.CARDCOUNT_MAPPING.get(self.game_config.deck)
         player_card_count = mapping_dict.get(len(self.players))
@@ -86,7 +86,7 @@ class GameSession:
             config_has_changed = False
             status_has_changed = False
             if self.__dynamic_card_count_scaling and self.__player_count_has_changed:
-                config_has_changed = self._update_config()
+                config_has_changed = self._update_card_count()
 
             # Receiving Player packages
             for player in self.players:
@@ -102,7 +102,8 @@ class GameSession:
                                 config = received_package.to_BasicGameConfig()
                                 self.game_config = config
                                 self.__dynamic_card_count_scaling = received_package.dynamic_card_count_scaling
-                                self._update_config()
+                                if self.__dynamic_card_count_scaling and self.__player_count_has_changed:
+                                    self._update_card_count()
                                 config_has_changed = True
                         case _:
                             pass  # logging
