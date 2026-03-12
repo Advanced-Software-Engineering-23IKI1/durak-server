@@ -3,6 +3,7 @@ from string import ascii_lowercase, digits
 
 use_letters = ascii_lowercase.replace("o", "")
 use_letters = use_letters.replace("l", "")
+use_letters = use_letters.replace("i", "")
 use_digits = digits.replace("0", "")
 use_digits = use_digits.replace("1", "")
 _GAME_CODE_CHARACTERS = use_letters + use_digits
