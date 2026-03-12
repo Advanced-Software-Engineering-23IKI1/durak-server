@@ -184,3 +184,8 @@ class DecoderTest(unittest.TestCase):
         parsed_pkg = Decoder.deserialize(test_pkg.to_json())
         self.assertTrue(test_pkg == parsed_pkg)
 
+    def test_019_decode_LobbyJoinConfirmationPackage(self):
+        """test decoding the LobbyJoinConfirmationPackage"""
+        test_pkg = LobbyJoinConfirmationPackage(player_id=9)
+        parsed_pkg = Decoder.deserialize(test_pkg.to_json())
+        self.assertTrue(test_pkg == parsed_pkg)

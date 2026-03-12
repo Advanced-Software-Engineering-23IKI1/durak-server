@@ -227,6 +227,7 @@ This package is sent when a player surrenders and picks up all attacking cards
 | Package Type                                              | Game Stage | Sent On    | Max Times Sent | Personalized |
 |-----------------------------------------------------------|------------|------------|----------------|--------------|
 | [exception](#exception)                                   | global     | event      | N              | -            |
+| [lobby-join-confirmation](#lobby-join-confirmation)       | lobby      | event      | 1              | yes          |
 | [lobby-status](#lobby-status)                             | lobby      | event      | N              | no           |
 | [game-config](#game-config)                               | lobby      | event      | N              | no           |
 | [game-start](#game-start)                                 | lobby      | event      | 1              | no           |
@@ -264,6 +265,25 @@ This package is sent to the client when an exception occurs.
 
 
 ### lobby loop
+
+<div id="lobby-join-confirmation">
+<details>
+<summary>lobby-join-confirmation</summary>
+
+This package is sent to indicate a successfull lobby join.
+
+```json
+{
+    "type": "lobby-join-confirmation",
+    "body": {
+        "player-id": 7  // player id
+    }
+}
+```
+</details>
+</div>
+
+
 
 <div id="lobby-status">
 <details>

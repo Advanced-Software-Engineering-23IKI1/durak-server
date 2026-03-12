@@ -202,6 +202,7 @@ class GameSession:
             f"{player.name or 'Player'} [{player.client.address}] joined Session [{self.code}]"
         )
         self.players.append(player)
+        player.send_package(durak_server.packages.LobbyJoinConfirmationPackage(player_id=player.player_id))
         self._send_status_update()
         self.__player_count_has_changed = True
         config_pkg = durak_server.packages.GameConfigPackage.from_GameConfig(

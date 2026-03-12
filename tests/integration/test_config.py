@@ -29,7 +29,9 @@ class TestConfigHandling(unittest.TestCase):
         response = None
         while not response:
             response = client.read_package()
-            if isinstance(response, LobbyStatusPackage):
+            if isinstance(response, LobbyStatusPackage) or isinstance(
+                response, LobbyJoinConfirmationPackage
+            ):
                 response = None
         self.assertTrue(isinstance(response, GameConfigPackage))
 
@@ -37,7 +39,7 @@ class TestConfigHandling(unittest.TestCase):
         """test sending config on the initial lobby creation"""
         client = TcpTestClient(IP, PORT)
         client.send_package(StartGameSessionPackage("player_1"))
-        for _ in range(2):
+        for _ in range(3):
             response = None
             while not response:
                 response = client.read_package()
@@ -45,6 +47,8 @@ class TestConfigHandling(unittest.TestCase):
                 gamecode = response.gamecode
             elif isinstance(response, GameConfigPackage):
                 p_1_config = response
+            elif isinstance(response, LobbyJoinConfirmationPackage):
+                pass
             else:
                 raise ValueError("unknown package sent in lobby")
 
@@ -55,7 +59,9 @@ class TestConfigHandling(unittest.TestCase):
         response = None
         while not response:
             response = client2.read_package()
-            if isinstance(response, LobbyStatusPackage):
+            if isinstance(response, LobbyStatusPackage) or isinstance(
+                response, LobbyJoinConfirmationPackage
+            ):
                 response = None
         self.assertTrue(isinstance(response, GameConfigPackage))
         p_2_config = response
@@ -68,12 +74,14 @@ class TestConfigHandling(unittest.TestCase):
     @skip_unless_advanced
     def test_003_permission_lobby_join(self):
         """test if the permission is checked when trying to change the GameConfig"""
-        #TODO adapt for future changes to customization rulesets
+        # TODO adapt for future changes to customization rulesets
         client_perm = TcpTestClient(IP, PORT)
         client_perm.send_package(StartGameSessionPackage("player_1"))
         response = None
         while not response:
             response = client_perm.read_package()
+            if isinstance(response, LobbyJoinConfirmationPackage):
+                response = None
         if isinstance(response, LobbyStatusPackage):
             gamecode = response.gamecode
 
@@ -105,14 +113,18 @@ class TestConfigHandling(unittest.TestCase):
         response = None
         while not response:
             response = client_2.read_package()
-            if isinstance(response, LobbyStatusPackage) or isinstance(response, GameConfigPackage):
+            if (
+                isinstance(response, LobbyStatusPackage)
+                or isinstance(response, GameConfigPackage)
+                or isinstance(response, LobbyJoinConfirmationPackage)
+            ):
                 response = None
         self.assertTrue(isinstance(response, ExceptionPackage))
         self.assertEqual(response.name, "PermissionDeniedExceptionPackage")
 
     def test_004_change_config_in_lobby(self):
         """test changing the config while in the lobby"""
-        #TODO adapt for future changes to customization rulesets
+        # TODO adapt for future changes to customization rulesets
         # [requires player based customization to be enabled]
         client = TcpTestClient(IP, PORT)
         client.send_package(StartGameSessionPackage("player_1"))
@@ -140,13 +152,21 @@ class TestConfigHandling(unittest.TestCase):
             )
         )
         incoming_packages = []
-        for i in range(3):
+        for i in range(4):
             response = None
             while not response:
                 response = client.read_package()
             incoming_packages.append(response)
-            
-        self.assertNotEqual(incoming_packages[1].cards[-1][0]["value"], incoming_packages[2].cards[-1][0]["value"])
-        self.assertNotEqual(incoming_packages[1].cards[0][0]["value"], incoming_packages[2].cards[0][0]["value"])
-        self.assertEqual(incoming_packages[1].cards[-1][0]["value"], incoming_packages[2].cards[0][0]["value"])
 
+        self.assertNotEqual(
+            incoming_packages[2].cards[-1][0]["value"],
+            incoming_packages[3].cards[-1][0]["value"],
+        )
+        self.assertNotEqual(
+            incoming_packages[2].cards[0][0]["value"],
+            incoming_packages[3].cards[0][0]["value"],
+        )
+        self.assertEqual(
+            incoming_packages[2].cards[-1][0]["value"],
+            incoming_packages[3].cards[0][0]["value"],
+        )
