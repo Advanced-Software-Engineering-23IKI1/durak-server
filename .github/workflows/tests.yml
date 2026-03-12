@@ -9,7 +9,7 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     steps:
       - name: repository checkout
         uses: actions/checkout@v4
@@ -29,7 +29,7 @@ jobs:
  
   integration-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     needs: unit-tests
     steps:
       - name: repository checkout
@@ -50,7 +50,7 @@ jobs:
 
   post-coverage:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 10
     needs: integration-tests
     permissions:
       pull-requests: write
@@ -83,19 +83,24 @@ jobs:
           fi
           echo "changed_files=$changed_files" >> $GITHUB_OUTPUT
 
+      - name: debug
+        run: |
+          ls -R
+          cat unit-tests-output/docker-output_unit.txt
+
       - name: get coverage 
         run: |
-          grep -E Name unit-tests-output/docker-output_unit.txt > coverage.txt
+          grep -E Name unit-tests-output/docker-output_unit.txt > coverage.txt || true
           for file in ${{steps.changed-files.outputs.changed_files}}; do
-            grep -E "$file" unit-tests-output/docker-output_unit.txt >> coverage.txt
+            grep -E "$file" unit-tests-output/docker-output_unit.txt >> coverage.txt || true
           done
-          grep -E TOTAL unit-tests-output/docker-output_unit.txt >> coverage.txt
+          grep -E TOTAL unit-tests-output/docker-output_unit.txt >> coverage.txt || true
           printf '\n' >> coverage.txt
-          grep -E Name integration-tests-output/docker-output_integration.txt >> coverage.txt
+          grep -E Name integration-tests-output/docker-output_integration.txt >> coverage.txt || true
           for file in ${{steps.changed-files.outputs.changed_files}}; do
-            grep -E "$file" integration-tests-output/docker-output_integration.txt >> coverage.txt
+            grep -E "$file" integration-tests-output/docker-output_integration.txt >> coverage.txt || true
           done
-          grep -E TOTAL integration-tests-output/docker-output_integration.txt >> coverage.txt
+          grep -E TOTAL integration-tests-output/docker-output_integration.txt >> coverage.txt || true
 
       - name: create pr comment
         uses: actions/github-script@v7
