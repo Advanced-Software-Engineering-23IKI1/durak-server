@@ -118,10 +118,6 @@ class GameSession:
             if config_has_changed:
                 self._send_config()
 
-            # send config
-            if config_has_changed:
-                self._send_config()
-
             # Sending Lobby Status
             if status_has_changed:
                 self._send_status_update()
