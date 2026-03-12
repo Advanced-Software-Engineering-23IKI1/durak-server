@@ -139,6 +139,7 @@ class GameSession:
                 self.state = GameState.Running
 
             time.sleep(0.1)
+            self.__player_count_has_changed = False
 
         if self.state == GameState.Running:
             self.init_game()
