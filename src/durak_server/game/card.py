@@ -123,7 +123,8 @@ def Deck_creator(values: list[CardValue]) -> CardDeck:
         CardDeck: the custom Deck
     """
     class MyDeck(CardDeck):
+        @property
         def values(self) -> list[CardValue]:
             return values
-        
-    return MyDeck
+
+    return MyDeck()

@@ -120,7 +120,7 @@ class TestConfigHandling(unittest.TestCase):
             ):
                 response = None
         self.assertTrue(isinstance(response, ExceptionPackage))
-        self.assertEqual(response.name, "PermissionDeniedExceptionPackage")
+        self.assertEqual(response.name, "PermissionDeniedException")
 
     def test_004_change_config_in_lobby(self):
         """test changing the config while in the lobby"""
@@ -128,7 +128,6 @@ class TestConfigHandling(unittest.TestCase):
         # [requires player based customization to be enabled]
         client = TcpTestClient(IP, PORT)
         client.send_package(StartGameSessionPackage("player_1"))
-        response = None
 
         client.send_package(
             UserGameConfigPackage(
@@ -170,3 +169,44 @@ class TestConfigHandling(unittest.TestCase):
             incoming_packages[2].cards[-1][0]["value"],
             incoming_packages[3].cards[0][0]["value"],
         )
+
+    def test_005_dynamic_card_count_on_unknown_deck_raises(self):
+        """test if the server returns an exception when a user tries to use dynamic card count scaling on an unknown deck"""
+        # TODO adapt for future changes to customization rulesets
+        # [requires player based customization to be enabled]
+        client = TcpTestClient(IP, PORT)
+        client.send_package(StartGameSessionPackage("player_1"))
+
+        client.send_package(
+            UserGameConfigPackage(
+                card_order=[
+                    CardValue.SIX,
+                    CardValue.SEVEN,
+                    CardValue.EIGHT,
+                    CardValue.NINE,
+                    CardValue.TEN,
+                    CardValue.J,
+                    CardValue.Q,
+                    CardValue.K,
+                    CardValue.A,
+                ],
+                attack_forwarding={
+                    "is-enabled": True,
+                    "exact-count-match": False,
+                },
+                player_card_count=None,
+                dynamic_card_count_scaling=True,
+                all_card_defend_early_end=False,
+            )
+        )
+
+        incoming_packages = []
+        for i in range(4):
+            response = None
+            while not response:
+                response = client.read_package()
+            incoming_packages.append(response)
+
+        self.assertIsInstance(incoming_packages[3], ExceptionPackage)
+        self.assertEqual(incoming_packages[3].name, "ConfigException")
+        self.assertEqual(incoming_packages[3].details["msg"], "Card Count scaling is not possible for Deck set")
