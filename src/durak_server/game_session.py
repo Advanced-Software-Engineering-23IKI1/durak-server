@@ -108,7 +108,7 @@ class GameSession:
                                 config = received_package.to_BasicGameConfig()
                                 self.game_config = config
                                 self.__dynamic_card_count_scaling = received_package.dynamic_card_count_scaling
-                                if self.__dynamic_card_count_scaling:
+                                if self.__dynamic_card_count_scaling and self.__player_count_has_changed:
                                     self._update_card_count()
                                 config_has_changed = True
                         case _:
