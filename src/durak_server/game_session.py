@@ -66,9 +66,13 @@ class GameSession:
     def _update_card_count(self) -> bool:
         self.update_player_list()
         mapping_dict = durak_server.config.CARDCOUNT_MAPPING.get(self.game_config.deck)
+        if mapping_dict is None:
+            self._logger.warning(f"Deck {self.game_config.deck} not possible with dynamic card count scaling")
+            self.broadcast(durak_server.packages.ConfigException("Card Count scaling is not possible for Deck set"))
         player_card_count = mapping_dict.get(len(self.players))
         if player_card_count is None:
-            raise ValueError("player count too high for provided config")
+            self._logger.warning(f"Player count of {len(self.players)} is too high for dynamic card count scaling")
+            self.broadcast(durak_server.packages.ConfigException("Player count too high for dynamic card count scaling"))
         old_player_card_count = self.game_config.player_card_count
         self.game_config.player_card_count = player_card_count
         return old_player_card_count == player_card_count
