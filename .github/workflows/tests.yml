@@ -49,6 +49,7 @@ jobs:
         run: docker compose down -v
 
   post-coverage:
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     needs: integration-tests
