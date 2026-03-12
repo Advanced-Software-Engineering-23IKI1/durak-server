@@ -83,11 +83,6 @@ jobs:
           fi
           echo "changed_files=$changed_files" >> $GITHUB_OUTPUT
 
-      - name: debug
-        run: |
-          ls -R
-          cat unit-tests-output/docker-output_unit.txt
-
       - name: get coverage 
         run: |
           grep -E Name unit-tests-output/docker-output_unit.txt > coverage.txt || true
