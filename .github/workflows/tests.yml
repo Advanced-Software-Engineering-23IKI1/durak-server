@@ -9,13 +9,15 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - name: repository checkout
         uses: actions/checkout@v4
 
       - name: start docker compose unit tests
-        run: docker compose up --build --exit-code-from unit_tests unit_tests | tee docker-output_unit.txt
+        run: |
+          set -o pipefail
+          docker compose up --build --exit-code-from unit_tests unit_tests | tee docker-output_unit.txt
 
       - name: upload unit tests output
         uses: actions/upload-artifact@v4
@@ -29,14 +31,16 @@ jobs:
  
   integration-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     needs: unit-tests
     steps:
       - name: repository checkout
         uses: actions/checkout@v4
 
       - name: start docker compose integration tests
-        run: docker compose up --build --exit-code-from integration_tests integration_tests | tee docker-output_integration.txt
+        run: |
+          set -o pipefail
+          docker compose up --build --exit-code-from integration_tests integration_tests | tee docker-output_integration.txt
 
       - name: upload integration tests output
         uses: actions/upload-artifact@v4
@@ -51,7 +55,7 @@ jobs:
   post-coverage:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     needs: integration-tests
     permissions:
       pull-requests: write
@@ -150,12 +154,20 @@ jobs:
           }
           ' coverage.txt > coverage.md
 
+      - name: extract ran tests
+        run: |
+          grep -E '| Ran' unit-tests-output/docker-output_unit.txt > tests_ran.txt || true
+          grep -E '| Ran' integration-tests-output/docker-output_integration.txt >> tests_ran.txt || true
+
       - name: create pr comment
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require("fs")
-            const body = fs.readFileSync("coverage.md", "utf8")
+            const coverage = fs.readFileSync("coverage.md", "utf8")
+            const tests_ran = fs.readFileSync("tests_ran.txt", "utf8")
+
+            const body = coverage + "\n\n### Tests ran:\n" + extra
             
             github.rest.issues.createComment({
               issue_number: context.issue.number,
