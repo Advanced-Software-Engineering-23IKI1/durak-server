@@ -52,7 +52,7 @@ jobs:
             --build \
             --exit-code-from integration_tests \
             integration_tests \
-            2>&1 | tee docker-output_integration_tests.txt
+            2>&1 | tee docker-output_integration.txt
 
       - name: upload integration tests output
         uses: actions/upload-artifact@v4
