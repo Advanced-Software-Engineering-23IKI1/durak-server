@@ -46,7 +46,7 @@ jobs:
       - name: start docker compose integration tests
         run: |
           set -euo pipefail
-          docker compose up \
+          docker compose \
             --ansi never \
             up \
             --build \
