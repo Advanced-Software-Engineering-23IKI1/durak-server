@@ -16,8 +16,12 @@ jobs:
 
       - name: start docker compose unit tests
         run: |
-          set -o pipefail
-          docker compose up --build --exit-code-from unit_tests unit_tests | tee docker-output_unit.txt
+          set -euo pipefail
+          docker compose up -d --build --exit-code-from unit_tests unit_tests
+          docker compose logs unit_tests -f --no-color 2>&1 | tee docker-output_unit.txt &
+          LOG_PID=$!
+          kill $LOG_PID 2>/dev/null || true
+          wait $LOG_PID 2>/dev/null || true
 
       - name: upload unit tests output
         uses: actions/upload-artifact@v4
@@ -39,8 +43,12 @@ jobs:
 
       - name: start docker compose integration tests
         run: |
-          set -o pipefail
-          docker compose up --build --exit-code-from integration_tests integration_tests | tee docker-output_integration.txt
+          set -euo pipefail
+          docker compose up -d --build --exit-code-from integration_tests integration_tests
+          docker compose logs integration_tests -f --no-color 2>&1 | tee docker-output_integration_tests.txt &
+          LOG_PID=$!
+          kill $LOG_PID 2>/dev/null || true
+          wait $LOG_PID 2>/dev/null || true
 
       - name: upload integration tests output
         uses: actions/upload-artifact@v4
@@ -167,10 +175,11 @@ jobs:
             const coverage = fs.readFileSync("coverage.md", "utf8")
             const tests_ran = fs.readFileSync("tests_ran.txt", "utf8")
 
+            const body = coverage + "\n\namount of tests ran:\n" + tests_ran
            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: coverage
+              body: body
             })
