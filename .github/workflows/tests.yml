@@ -17,7 +17,9 @@ jobs:
       - name: start docker compose unit tests
         run: |
           set -euo pipefail
-          docker compose up --ansi never up \
+          docker compose
+            --ansi never \
+            up \
             --build \
             --exit-code-from unit_tests \
             unit_tests \
@@ -44,11 +46,13 @@ jobs:
       - name: start docker compose integration tests
         run: |
           set -euo pipefail
-          docker compose up --ansi never up \
-           --build \
-           --exit-code-from integration_tests \
+          docker compose up \
+            --ansi never \
+            up \
+            --build \
+            --exit-code-from integration_tests \
             integration_tests \
-          2>&1 | tee docker-output_integration_tests.txt
+            2>&1 | tee docker-output_integration_tests.txt
 
       - name: upload integration tests output
         uses: actions/upload-artifact@v4
