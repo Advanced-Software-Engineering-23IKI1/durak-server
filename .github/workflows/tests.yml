@@ -168,8 +168,14 @@ jobs:
 
       - name: extract ran tests
         run: |
-          grep -E ' Ran' unit-tests-output/docker-output_unit.txt > tests_ran.txt || true
-          grep -E ' Ran' integration-tests-output/docker-output_integration.txt >> tests_ran.txt || true
+          UNIT=$(grep -Eo 'Ran [0-9]+' unit-tests-output/docker-output_unit.txt | awk '{print $2}')
+          INTEGRATION=$(grep -Eo 'Ran [0-9]+' integration-tests-output/docker-output_integration.txt | awk '{print $2}')
+
+          echo "Test Summary:" > tests_ran.txt
+          echo "-------------" >> tests_ran.txt
+          echo "unit tests:        $UNIT" >> tests_ran.txt
+          echo "integration tests: $INTEGRATION" >> tests_ran.txt
+          echo "total:             $((UNIT + INTEGRATION))" >> tests_ran.txt
 
       - name: create pr comment
         uses: actions/github-script@v7
