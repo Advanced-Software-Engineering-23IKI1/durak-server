@@ -17,7 +17,7 @@ jobs:
       - name: start docker compose unit tests
         run: |
           set -euo pipefail
-          docker compose
+          docker compose \
             --ansi never \
             up \
             --build \
