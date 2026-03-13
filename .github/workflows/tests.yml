@@ -171,8 +171,6 @@ jobs:
           UNIT=$(grep -Eo 'Ran [0-9]+' unit-tests-output/docker-output_unit.txt | awk '{print $2}')
           INTEGRATION=$(grep -Eo 'Ran [0-9]+' integration-tests-output/docker-output_integration.txt | awk '{print $2}')
 
-          echo "Test Summary:" > tests_ran.txt
-          echo "-------------" >> tests_ran.txt
           echo "unit tests:        $UNIT" >> tests_ran.txt
           echo "integration tests: $INTEGRATION" >> tests_ran.txt
           echo "total:             $((UNIT + INTEGRATION))" >> tests_ran.txt
@@ -184,8 +182,8 @@ jobs:
             const fs = require("fs")
             const coverage = fs.readFileSync("coverage.md", "utf8")
             const tests_ran = fs.readFileSync("tests_ran.txt", "utf8")
-
-            const body = coverage + "\n\namount of tests ran:\n" + tests_ran
+            
+            const body = coverage + "\n------------\nTest Summary:\n" + tests_ran
            
             github.rest.issues.createComment({
               issue_number: context.issue.number,
