@@ -9,13 +9,21 @@ jobs:
 
   unit-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     steps:
       - name: repository checkout
         uses: actions/checkout@v4
 
       - name: start docker compose unit tests
-        run: docker compose up --build --exit-code-from unit_tests unit_tests | tee docker-output_unit.txt
+        run: |
+          set -euo pipefail
+          docker compose \
+            --ansi never \
+            up \
+            --build \
+            --exit-code-from unit_tests \
+            unit_tests \
+            2>&1 | tee docker-output_unit.txt
 
       - name: upload unit tests output
         uses: actions/upload-artifact@v4
@@ -29,14 +37,22 @@ jobs:
  
   integration-tests:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     needs: unit-tests
     steps:
       - name: repository checkout
         uses: actions/checkout@v4
 
       - name: start docker compose integration tests
-        run: docker compose up --build --exit-code-from integration_tests integration_tests | tee docker-output_integration.txt
+        run: |
+          set -euo pipefail
+          docker compose \
+            --ansi never \
+            up \
+            --build \
+            --exit-code-from integration_tests \
+            integration_tests \
+            2>&1 | tee docker-output_integration.txt
 
       - name: upload integration tests output
         uses: actions/upload-artifact@v4
@@ -51,7 +67,7 @@ jobs:
   post-coverage:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     needs: integration-tests
     permissions:
       pull-requests: write
@@ -150,13 +166,25 @@ jobs:
           }
           ' coverage.txt > coverage.md
 
+      - name: extract ran tests
+        run: |
+          UNIT=$(grep -Eo 'Ran [0-9]+' unit-tests-output/docker-output_unit.txt | awk '{print $2}')
+          INTEGRATION=$(grep -Eo 'Ran [0-9]+' integration-tests-output/docker-output_integration.txt | awk '{print $2}')
+
+          echo "unit tests:        $UNIT" >> tests_ran.txt
+          echo "integration tests: $INTEGRATION" >> tests_ran.txt
+          echo "total:             $((UNIT + INTEGRATION))" >> tests_ran.txt
+
       - name: create pr comment
         uses: actions/github-script@v7
         with:
           script: |
             const fs = require("fs")
-            const body = fs.readFileSync("coverage.md", "utf8")
+            const coverage = fs.readFileSync("coverage.md", "utf8")
+            const tests_ran = fs.readFileSync("tests_ran.txt", "utf8")
             
+            const body = coverage + "\n------------\nTest Summary:\n" + tests_ran
+           
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
