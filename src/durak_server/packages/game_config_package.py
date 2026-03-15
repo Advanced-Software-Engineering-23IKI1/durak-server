@@ -1,6 +1,7 @@
 from __future__ import annotations
 from durak_server.packages import BasePackage
-from durak_server.config.game_config import GameConfig
+from durak_server.config.game_config import GameConfig, BasicGameConfig
+from durak_server.game.card import CardValue, Deck32, Deck52, Deck_creator
 from typing import Union
 
 
@@ -142,3 +143,33 @@ class GameConfigPackage(BasePackage):
             dynamic_card_count_scaling=dynamic_card_count_scaling,
             all_card_defend_early_end=game_config.all_card_defend_early_end,
         )
+    
+    def to_BasicGameConfig(self) -> BasicGameConfig | None:
+        """try to generate a BasicGameConfig from the package
+        #! WARNING: this method is considered UNSTABLE and should only be used if confident
+        #! that the package can be parsed to a BasicGameConfig. Checks do not cover all edge cases !
+
+        Returns:
+            BasicGameConfig | None: the resulting config object or None if generation is not possible
+        """
+        try:
+            card_value_order = []
+            for cardgroup in self.cards:
+                if cardgroup[0]["value"] not in card_value_order:
+                    card_value_order.append(cardgroup[0]["value"])
+            if frozenset(card_value_order) == frozenset(Deck32().values):
+                deck = Deck32()
+            elif frozenset(card_value_order) == frozenset(Deck52().values):
+                deck = Deck52()
+            else:
+                deck = Deck_creator(card_value_order)
+            return BasicGameConfig(
+                attack_forwarding=self.attack_forwarding["is-enabled"],
+                attack_forwarding_exact_count_match=self.attack_forwarding["exact-count-match"],
+                all_card_defend_early_end=self.all_card_defend_early_end,
+                card_order=card_value_order,
+                deck=deck,
+                player_card_count=self.player_card_count
+            )
+        except Exception as e:
+            return None
