@@ -43,8 +43,12 @@ integration tests:
 python -m tests.integration.run_tests
 ```
 
-interactive test client:
+interactive test client (low-level):
 ```sh
 python -m tests.interactive_test_client
 ```
 
+interactive test client (high-level):
+```sh
+python -m tests.high_level_interactive_test_client
+```
