@@ -604,3 +604,20 @@ Sent if a card_id that is being used is not in the player's posession
 
 </details>
 </div>
+
+
+<div id="InvalidAttackExceptionPackage">
+<details>
+<summary>InvalidAttackExceptionPackage</summary>
+
+```json
+{
+    "type": "exception",
+    "body": {
+        "name": "InvalidAttackExceptionPackage",
+        "details": {
+            "msg": ""  // additional message
+        }
+    }
+}
+```

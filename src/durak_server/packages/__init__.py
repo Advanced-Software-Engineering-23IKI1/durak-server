@@ -7,6 +7,8 @@ from durak_server.packages.exception_package import (
     PackageParsingExceptionPackage,
     InvalidGameCodeExceptionPackage,
     PermissionDeniedExceptionPackage,
+    CardIdNotInPossessionExceptionPackage,
+    InvalidAttackExceptionPackage,
 )
 from durak_server.packages.game_start_package import GameStartPackage
 from durak_server.packages.lobby_status_package import LobbyStatusPackage
@@ -62,5 +64,7 @@ __all__ = [
     "PlayerAttackPackage",
     "PlayerDefensePackage",
     "UserGameConfigPackage",
-    "PermissionDeniedExceptionPackage"
+    "PermissionDeniedExceptionPackage",
+    "CardIdNotInPossessionExceptionPackage",
+    "InvalidAttackExceptionPackage"
 ]

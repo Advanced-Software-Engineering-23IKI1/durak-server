@@ -154,7 +154,7 @@ class GameSession:
                 durak_server.packages.GameStartPackage()
             )
 
-        self._game_loop_engine = GameLoop(self.game_config, self.players)
+        self._game_loop_engine = GameLoop(self.game_config, self.players, self._logger)
 
         self._logger.info(f"Session [{self.code}] switched state to running")
 

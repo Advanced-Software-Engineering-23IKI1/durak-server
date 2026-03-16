@@ -7,10 +7,17 @@ import durak_server.packages
 from durak_server.player import PlayerGameStatus
 
 class GameLoop:
-    def __init__(self, game_config: GameConfig, players: list[Player]):
+    def __init__(self, game_config: GameConfig, players: list[Player], logger: SessionLogger):
         self._game_config = game_config
         shuffle(players) # this is theoretically part of the game start routine but the players structure is optimally a immutable tuple
         self._players = tuple(players) 
+        self._logger = logger
+        self._game_player_list = self._players().copy(deep=False)  # list of players still in game
+        self._leaderboard = []
+        self._attack_buffer = {}  # mapping dict for the current attack
+        self._attack_max = 0  # max amount of cards valid for attacking (=initial defender hand count)
+        self._attacker_list = []
+        self._cur_attacker_idx = 0
         self.game_start_routine()
 
     @property
