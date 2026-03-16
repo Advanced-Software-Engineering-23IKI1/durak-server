@@ -167,7 +167,7 @@ cython_debug/
 
 
 # own additions
-tests/config.ini
+#tests/config.ini
 **/logs/**
 
 

@@ -1,0 +1,193 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: repository checkout
+        uses: actions/checkout@v4
+
+      - name: start docker compose unit tests
+        run: |
+          set -euo pipefail
+          docker compose \
+            --ansi never \
+            up \
+            --build \
+            --exit-code-from unit_tests \
+            unit_tests \
+            2>&1 | tee docker-output_unit.txt
+
+      - name: upload unit tests output
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-tests-output
+          path: docker-output_unit.txt
+
+      - name: cleanup
+        if: always()
+        run: docker compose down -v
+ 
+  integration-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: unit-tests
+    steps:
+      - name: repository checkout
+        uses: actions/checkout@v4
+
+      - name: start docker compose integration tests
+        run: |
+          set -euo pipefail
+          docker compose \
+            --ansi never \
+            up \
+            --build \
+            --exit-code-from integration_tests \
+            integration_tests \
+            2>&1 | tee docker-output_integration.txt
+
+      - name: upload integration tests output
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-tests-output
+          path: docker-output_integration.txt
+
+      - name: cleanup
+        if: always()
+        run: docker compose down -v
+
+  post-coverage:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    needs: integration-tests
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - name: 
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: ${{github.event_name == 'pull_request' && 2 || 0}}
+
+      - name: download unit tests output
+        uses: actions/download-artifact@v4
+        with:
+          name: unit-tests-output
+          path: unit-tests-output
+
+      - name: download integration tests outpout
+        uses: actions/download-artifact@v4
+        with:
+          name: integration-tests-output
+          path: integration-tests-output
+
+      - name: get changed files
+        id: changed-files
+        run: |
+          if [ "${{github.event_name}}" = "pull_request" ]; then
+            changed_files=$(git diff --name-only HEAD^1 HEAD | xargs)
+          else
+            changed_files=$(git diff --name-only ${{github.event.before}} ${{github.event.after}} | xargs)
+          fi
+          echo "changed_files=$changed_files" >> $GITHUB_OUTPUT
+
+      - name: get coverage 
+        run: |
+          grep -E Name unit-tests-output/docker-output_unit.txt > coverage.txt || true
+          for file in ${{steps.changed-files.outputs.changed_files}}; do
+            grep -E "$file" unit-tests-output/docker-output_unit.txt >> coverage.txt || true
+          done
+          grep -E TOTAL unit-tests-output/docker-output_unit.txt >> coverage.txt || true
+          printf '\n' >> coverage.txt
+          grep -E Name integration-tests-output/docker-output_integration.txt >> coverage.txt || true
+          for file in ${{steps.changed-files.outputs.changed_files}}; do
+            grep -E "$file" integration-tests-output/docker-output_integration.txt >> coverage.txt || true
+          done
+          grep -E TOTAL integration-tests-output/docker-output_integration.txt >> coverage.txt || true
+
+      - name: format coverage as markdown
+        run: |
+          awk '
+          function print_header(title) {
+              print "### " title
+              print ""
+              print "| File | Stmts | Miss | Cover |"
+              print "|------|------|------|------|"
+          }
+
+          /durak_server_unit_tests/ {
+              if (!unit_header_printed) {
+                  print_header("Unit Tests Coverage")
+                  unit_header_printed=1
+              }
+
+              file=$3
+              stmts=$4
+              miss=$5
+              cover=$6
+      
+              if (file != "Name") {
+                  if (file == "TOTAL") {
+                      printf("| **TOTAL** | **%s** | **%s** | **%s** |\n", stmts, miss, cover)
+                  } else {
+                      printf("| %s | %s | %s | %s |\n", file, stmts, miss, cover)
+                  }
+              }
+          }
+
+          /durak_server_integration_tests/ {
+              if (!integration_header_printed) {
+                  print ""
+                  print_header("Integration Tests Coverage")
+                  integration_header_printed=1
+              }
+
+              file=$3
+              stmts=$4
+              miss=$5
+              cover=$6
+
+              if (file != "Name") {
+                  if (file == "TOTAL") {
+                      printf("| **TOTAL** | **%s** | **%s** | **%s** |\n", stmts, miss, cover)
+                  } else {
+                      printf("| %s | %s | %s | %s |\n", file, stmts, miss, cover)
+                  }
+              }
+          }
+          ' coverage.txt > coverage.md
+
+      - name: extract ran tests
+        run: |
+          UNIT=$(grep -Eo 'Ran [0-9]+' unit-tests-output/docker-output_unit.txt | awk '{print $2}')
+          INTEGRATION=$(grep -Eo 'Ran [0-9]+' integration-tests-output/docker-output_integration.txt | awk '{print $2}')
+
+          echo "unit tests:        $UNIT" >> tests_ran.txt
+          echo "integration tests: $INTEGRATION" >> tests_ran.txt
+          echo "total:             $((UNIT + INTEGRATION))" >> tests_ran.txt
+
+      - name: create pr comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require("fs")
+            const coverage = fs.readFileSync("coverage.md", "utf8")
+            const tests_ran = fs.readFileSync("tests_ran.txt", "utf8")
+            
+            const body = coverage + "\n------------\nTest Summary:\n" + tests_ran
+           
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body
+            })

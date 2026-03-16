@@ -44,6 +44,9 @@ class Card:
     suit: CardSuit
     value: CardValue
 
+    def __str__(self) -> str:
+        return f"{self.value.value} {self.suit.value} (id={self.id})"
+
 
 class CardDeck(ABC):
     def __init__(self):
@@ -75,6 +78,9 @@ class CardDeck(ABC):
 
     def __eq__(self, value: CardDeck) -> bool:
         return frozenset(self.values) == frozenset(value.values)
+    
+    def __str__(self) -> str:
+        return f"Deck{len(self.values)*4}"
 
 
 class Deck52(CardDeck):
@@ -123,7 +129,8 @@ def Deck_creator(values: list[CardValue]) -> CardDeck:
         CardDeck: the custom Deck
     """
     class MyDeck(CardDeck):
+        @property
         def values(self) -> list[CardValue]:
             return values
-        
-    return MyDeck
+
+    return MyDeck()

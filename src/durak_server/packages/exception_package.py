@@ -102,10 +102,34 @@ class PermissionDeniedExceptionPackage(ExceptionPackage):
             "msg": msg,
             **details
         }
-        super().__init__("PermissionDeniedExceptionPackage", details)
+        super().__init__("PermissionDeniedException", details)
 
     def __repr__(self):
         return f"PermissionDeniedExceptionPackage({self._msg}, {str(self._details)})"
+
+
+
+class ConfigExceptionPackage(ExceptionPackage):
+    """Wrapper Class for config exceptions
+
+    Args:
+        msg (str): the msg provided
+        details (Optional[dict], optional): additional details. Defaults to None.
+    """
+    def __init__(self, msg: str, details: Optional[dict] = None):
+        if not details:
+            details = {}
+        self._msg = msg
+        self._details = details
+        details = {
+            "msg": msg,
+            **details
+        }
+        super().__init__("ConfigException", details)
+
+    def __repr__(self):
+        return f"ConfigExceptionPackage({self._msg}, {str(self._details)})"
+
 
 
 class CardIdNotInPossessionExceptionPackage(ExceptionPackage):

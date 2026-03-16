@@ -9,6 +9,7 @@ from durak_server.packages.exception_package import (
     PermissionDeniedExceptionPackage,
     CardIdNotInPossessionExceptionPackage,
     InvalidAttackExceptionPackage,
+    ConfigExceptionPackage
 )
 from durak_server.packages.game_start_package import GameStartPackage
 from durak_server.packages.lobby_status_package import LobbyStatusPackage
@@ -23,6 +24,7 @@ from durak_server.packages.game_config_package import GameConfigPackage
 from durak_server.packages.player_attack_package import PlayerAttackPackage
 from durak_server.packages.player_defense_package import PlayerDefensePackage
 from durak_server.packages.user_game_config_package import UserGameConfigPackage
+from durak_server.packages.lobby_join_confirmation_package import LobbyJoinConfirmationPackage
 
 # dictionairy to map package names to actual package classes
 PACKAGE_DICT = {
@@ -41,6 +43,7 @@ PACKAGE_DICT = {
     "player-attack": PlayerAttackPackage,
     "player-defense": PlayerDefensePackage,
     "user-game-config": UserGameConfigPackage,
+    "lobby-join-confirmation": LobbyJoinConfirmationPackage,
 }
 
 
@@ -66,5 +69,7 @@ __all__ = [
     "UserGameConfigPackage",
     "PermissionDeniedExceptionPackage",
     "CardIdNotInPossessionExceptionPackage",
-    "InvalidAttackExceptionPackage"
+    "InvalidAttackExceptionPackage",
+    "LobbyJoinConfirmationPackage",
+    "ConfigExceptionPackage"
 ]
