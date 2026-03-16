@@ -80,13 +80,38 @@ class HighLevelInteractiveTestClient(TcpTestClient):
 
         signal.signal(signal.SIGINT, self._stop)
 
-        self._listener_thread = Thread(target=self._listen_to_packages)
+        self._listener_thread = Thread(target=self._listen_to_packages, daemon=True)
         self._listener_thread.start()
 
-        self._input_thread = Thread(target=self._input_loop)
+        self._input_thread = Thread(target=self._input_loop, daemon=True)
         self._input_thread.start()
 
-        self.main_loop()
+        try:
+            self.main_loop()
+        finally:
+            self.shutdown()
+
+    def shutdown(self):
+        if not self._is_running:
+            return
+
+        self._is_running = False
+
+        try:
+            self.session.app.exit()
+        except Exception:
+            pass
+
+        if hasattr(self, "_listener_thread") and self._listener_thread.is_alive():
+            self._listener_thread.join(timeout=1)
+
+        if hasattr(self, "_input_thread") and self._input_thread.is_alive():
+            self._input_thread.join(timeout=1)
+
+        try:
+            super().shutdown()
+        except Exception:
+            pass
 
     def _listen_to_packages(self):
 
@@ -106,11 +131,16 @@ class HighLevelInteractiveTestClient(TcpTestClient):
     def _input_loop(self):
 
         while self._is_running:
-
-            with patch_stdout():
-                cmd = self.session.prompt("> ")
-
-            self._cmd_queue.put(cmd)
+            try:
+                with patch_stdout():
+                    cmd = self.session.prompt("> ")
+                self._cmd_queue.put(cmd)
+            except (KeyboardInterrupt, EOFError):
+                self._is_running = False
+                break
+            except Exception:
+                self._is_running = False
+                break
 
     def _update_data(self, pkg):
 
@@ -482,18 +512,8 @@ class HighLevelInteractiveTestClient(TcpTestClient):
             time.sleep(0.05)
 
     def _stop(self, signum, frame):
-
         print("Stopping client...")
-
-        self._is_running = False
-
-        try:
-            self.session.app.exit()
-        except Exception:
-            pass
-
-        self._listener_thread.join()
-        self._input_thread.join()
+        self.shutdown()
 
 
 def main():
