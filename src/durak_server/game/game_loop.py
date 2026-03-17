@@ -386,8 +386,6 @@ class GameLoop:
                     return False
                 attack["defend_card"] = defend_card
         success = defender.remove_card(defend_card)
-        print(success)
-        print("\n"*5)
         self.check_players_finished()
         return True
 
