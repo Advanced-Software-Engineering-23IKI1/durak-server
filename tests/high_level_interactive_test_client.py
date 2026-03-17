@@ -249,6 +249,11 @@ class HighLevelInteractiveTestClient(TcpTestClient):
                     durak_server.packages.StatusUpdatePackage(is_ready=True)
                 )
 
+            case ["r"]:
+                self.send_package(
+                    durak_server.packages.StatusUpdatePackage(is_ready=True)
+                )
+
             case ["unready"]:
                 self.send_package(
                     durak_server.packages.StatusUpdatePackage(is_ready=False)
@@ -388,9 +393,9 @@ class HighLevelInteractiveTestClient(TcpTestClient):
             print("Use 'attack <card_id> [<card_id> ...]'")
             return
 
-        if self._role != PlayerRole.Attacker:
-            print("You are not the attacker right now.")
-            return
+        # if self._role != PlayerRole.Attacker:
+        #     print("You are not the attacker right now.")
+        #     return
 
         try:
             cards = [int(card) for card in parts[1:]]
@@ -420,9 +425,9 @@ class HighLevelInteractiveTestClient(TcpTestClient):
             print("Use 'defend attack_id:defend_id [attack_id:defend_id ...]'")
             return
 
-        if self._role != PlayerRole.Defender:
-            print("You are not the defender right now.")
-            return
+        # if self._role != PlayerRole.Defender:
+        #     print("You are not the defender right now.")
+        #     return
 
         defense_pairs = []
         for pair in parts[1:]:

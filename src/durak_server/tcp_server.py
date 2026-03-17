@@ -122,6 +122,7 @@ class TcpServer:
 
             self._logger.info(f"Killing game session [{session.code}]...")
             session.state = GameState.Kill
+            session._game_loop_engine.state = GameState.Kill
             session.thread.join()
             session.cleanup()
 
