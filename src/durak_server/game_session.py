@@ -209,7 +209,8 @@ class GameSession:
 
     def cleanup(self):
         """Cleans all resources used by the game session directly"""
-        self._game_loop_engine.state = GameState.Kill
+        if self._game_loop_engine is not None:
+            self._game_loop_engine.state = GameState.Kill
         if self.state == GameState.Cleaned:
             return
 

@@ -447,6 +447,8 @@ Valid status strings are
 - "attack"
 - "defend"
 - "finish"
+- "observer"
+- "unknown"
 
 ```json
 {

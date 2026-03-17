@@ -4,6 +4,7 @@ from durak_server.game.drawpile import DrawPile
 from durak_server.game.card import Card
 from random import shuffle
 import itertools
+import time
 from durak_server.server_logging import SessionLogger
 
 import durak_server.packages
@@ -109,9 +110,11 @@ class GameLoop:
             self._logger.debug(base_msg + " remaining attack card count.")
             return False
         # card value already attacking or initial attack
-        if not (len(self._attack_buffer) == 0 or attacking_cards[0].value in [
-            attack["attack_card"].value for attack in self._attack_buffer
-        ]):
+        if not (
+            len(self._attack_buffer) == 0
+            or attacking_cards[0].value
+            in [attack["attack_card"].value for attack in self._attack_buffer]
+        ):
             self._logger.debug(base_msg + " card type present or initial.")
             return False
         return True
@@ -230,9 +233,14 @@ class GameLoop:
         defend_complete = False
         pickup = False
         defense_started = False
-        while not defend_complete and not pickup and self.state == GameState.Running:
+        while self.state == GameState.Running and not defend_complete and not pickup:
+            processed_any = False
             for player in self._game_player_list:
-                while received_package := player.read_package():
+                while self.state == GameState.Running:
+                    received_package = player.read_package()
+                    if received_package is None:
+                        break
+                    processed_any = True
                     match received_package:
                         case durak_server.packages.PlayerAttackPackage():
                             attack_cards = [
@@ -292,20 +300,22 @@ class GameLoop:
                                 ) % len(self._game_player_list)
 
                         case durak_server.packages.PlayerDefensePackage():
-                            if not player == designated_defender:
+                            if player != designated_defender:
                                 continue
                             any_attack_performed = False
                             for cardpair in received_package.defense:
-                                attack_card = self.get_card_by_id(
-                                    cardpair["attack_id"]
-                                )
+                                attack_card = self.get_card_by_id(cardpair["attack_id"])
                                 defense_card = self.get_card_by_id(
                                     cardpair["defend_id"]
                                 )
                                 if not self.is_defense_valid(attack_card, defense_card):
-                                    self._logger.debug(f"Defending {attack_card} using {defense_card} failed.")
+                                    self._logger.debug(
+                                        f"Defending {attack_card} using {defense_card} failed."
+                                    )
                                     continue
-                                if self.perform_defense(designated_defender, attack_card, defense_card):
+                                if self.perform_defense(
+                                    designated_defender, attack_card, defense_card
+                                ):
                                     any_attack_performed = True
                             if any_attack_performed:
                                 if designated_defender not in self.draw_list:
@@ -320,6 +330,8 @@ class GameLoop:
                                     ) % len(self._game_player_list)
                                     self.check_players_finished()
                                 self.update_info()
+            if not processed_any:
+                time.sleep(0.05)
 
     def turn(self):
         """game turn
@@ -337,27 +349,38 @@ class GameLoop:
         ]
         self.broadcast_player_status()
         initial_attack_complete = False
-        while not initial_attack_complete and self.state == GameState.Running:
-            response = None
-            while not response and self.state == GameState.Running:
-                response = attacker.read_package()
+        while self.state == GameState.Running and not initial_attack_complete:
+            response = attacker.read_package()
+            if response is None:
+                time.sleep(0.05)
+                continue
 
-            attack_card_list = [
-                self.get_card_by_id(card_int) for card_int in response.cards
-            ]
-
-            if not isinstance(
-                response, durak_server.packages.PlayerAttackPackage
-            ) or not self.is_attack_valid(designated_defender, attack_card_list):
+            if not isinstance(response, durak_server.packages.PlayerAttackPackage):
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
                         "attack invalid"
                     )
                 )
-            else:
-                initial_attack_complete = self.perform_attack(
-                    attacker, designated_defender, attacking_cards=attack_card_list
+                continue
+
+            attack_card_list = [
+                self.get_card_by_id(card_int) for card_int in response.cards
+            ]
+            if not self.is_attack_valid(designated_defender, attack_card_list):
+                attacker.send_package(
+                    durak_server.packages.InvalidAttackExceptionPackage(
+                        "attack invalid"
+                    )
                 )
+                continue
+
+            initial_attack_complete = self.perform_attack(
+                attacker, designated_defender, attacking_cards=attack_card_list
+            )
+
+        if self.state != GameState.Running:
+            return
+
         self.draw_list.append(attacker)
 
         for player in self._game_player_list:
@@ -377,7 +400,9 @@ class GameLoop:
             defend_card
         )
 
-    def perform_defense(self, defender: Player, attack_card: Card, defend_card: Card) -> bool:
+    def perform_defense(
+        self, defender: Player, attack_card: Card, defend_card: Card
+    ) -> bool:
         for attack in self._attack_buffer:
             if attack["attack_card"] == attack_card:
                 if (
