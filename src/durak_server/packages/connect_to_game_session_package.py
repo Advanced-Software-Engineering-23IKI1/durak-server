@@ -15,7 +15,7 @@ class ConnectToGameSessionPackage(BasePackage):
             gamecode (str): the gamecode (validation is performed at a later stage)
             playername (str): playername
         """
-        self.__gamecode = gamecode
+        self.__gamecode = gamecode.lower()  # gamecodes are lower case by default
         self.__playername = playername
 
     def _generate_body_dict(self) -> dict:
