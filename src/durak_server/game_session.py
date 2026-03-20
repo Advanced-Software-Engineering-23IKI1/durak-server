@@ -29,11 +29,11 @@ class GameSession:
             self.__dynamic_card_count_scaling = False
         self.__player_count_has_changed = True
         self._game_loop_engine = None
-
+        
         # Start the game lobby loop
+        self._logger = SessionLogger(gamecode=self.code)
         self.thread = Thread(target=self.lobby_loop)
         self.thread.start()
-        self._logger = SessionLogger(gamecode=self.code)
 
     def update_player_list(self):
         player_list_len = len(self.players)
@@ -85,6 +85,22 @@ class GameSession:
         )
 
     def lobby_loop(self):
+        # wait for first player to join
+        self._logger.info(f"Session [{self.code}] is waiting for players to join...")
+        
+        # this timeout should theoretically never be reached, since the game session is created alongside the player 
+        # in response to the same package
+        
+        timeout = 20
+        while len(self.players) == 0:
+            time.sleep(1)
+            timeout -= 1
+            if timeout <= 0:
+                self._logger.info("No player joined the session within the timeout. Ending session.")
+                self.state = GameState.Kill
+                self.cleanup()
+                return
+        
         loop_iteration = 0
         while self.state is GameState.Preperation:
             self.update_player_list()
