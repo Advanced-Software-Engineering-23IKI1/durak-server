@@ -158,23 +158,15 @@ class GameSession:
                 durak_server.packages.GameStartPackage()
             )
 
-        self._game_loop_engine = GameLoop(self.game_config, self.players)
-
+        self._game_loop_engine = GameLoop(self.game_config, self.players, self._logger)
         self._logger.info(f"Session [{self.code}] switched state to running")
+
 
 
     def game_loop(self):
         if self._game_loop_engine is not None:
+            self._game_loop_engine.game_start_routine()
             self._game_loop_engine.loop()
-
-        while self.state is GameState.Running:
-
-            # Read Player packages
-            for player in self.players:
-                while received_package := player.read_package():
-                    match received_package:
-                        case _:
-                            pass  # Logging
 
         if self.state is GameState.Ended:
             self.end_routine()
@@ -217,6 +209,8 @@ class GameSession:
 
     def cleanup(self):
         """Cleans all resources used by the game session directly"""
+        if self._game_loop_engine is not None:
+            self._game_loop_engine.state = GameState.Kill
         if self.state == GameState.Cleaned:
             return
 

@@ -130,3 +130,48 @@ class ConfigExceptionPackage(ExceptionPackage):
     def __repr__(self):
         return f"ConfigExceptionPackage({self._msg}, {str(self._details)})"
 
+
+
+class CardIdNotInPossessionExceptionPackage(ExceptionPackage):
+    """Exception Package for card ids that are not in the player's possession
+
+    Args:
+        card_id (list[int]): card(s) the player attempted to use
+        details (Optional[dict], optional): additional details. Defaults to None.
+    """
+    def __init__(self, card_id: list[int], details: Optional[dict] = None):
+        if not details:
+            details = {}
+        self._card_id = card_id
+        self._details = details
+        details = {
+            "card_id": card_id,
+            **details
+        }
+        super().__init__("CardIdNotInPossessionException", details)
+
+    def __repr__(self):
+        return f"CardIdNotInPossessionExceptionPackage({self._card_id}, {str(self._details)})"
+
+
+class InvalidAttackExceptionPackage(ExceptionPackage):
+    """Wrapper Class for permission denied
+
+    Args:
+        msg (str): the msg provided
+        details (Optional[dict], optional): additional details. Defaults to None.
+    """
+    def __init__(self, msg: str, details: Optional[dict] = None):
+        if not details:
+            details = {}
+        self._msg = msg
+        self._details = details
+        details = {
+            "msg": msg,
+            **details
+        }
+        super().__init__("InvalidAttackException", details)
+
+    def __repr__(self):
+        return f"InvalidAttackExceptionPackage({self._msg}, {str(self._details)})"
+

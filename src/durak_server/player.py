@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 from enum import Enum
 from durak_server.server_logging import PlayerLogger
+from durak_server.game.card import Card
 
 if TYPE_CHECKING:
     from durak_server.tcp_client import TcpClient
@@ -14,6 +15,7 @@ class PlayerGameStatus(str, Enum):
     Defender = "defend",
     Finished = "finished",
     Unknown = "unknown"
+    Observer = "observer"
 
 
 class Player:
@@ -44,7 +46,7 @@ class Player:
         self._gamecode = gamecode
         self._logger = PlayerLogger(self._name, self._gamecode, self._client.address[0], self._client.address[1])
         self._client.logger = self._logger  # sharing the player logger with the underlying TcpClient
-        self._player_game_status = PlayerGameStatus.Unknown
+        self._player_game_status = PlayerGameStatus.Observer
         self._hand = []
         self._can_modify_config = False
 
@@ -135,3 +137,11 @@ class Player:
     @property
     def logger(self) -> PlayerLogger:
         return self._logger
+    
+    def remove_card(self, card: Card) -> bool:
+        try:
+            self._hand.remove(card)
+            return True
+        except ValueError:
+            return False
+
