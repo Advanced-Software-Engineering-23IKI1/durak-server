@@ -127,7 +127,7 @@ class GameSession:
                 for inner_player in self.players
             ]
 
-            all_players_ready = all(player["is-ready"] for player in player_list)
+            all_players_ready = 0 if len(player_list) == 0 else all(player["is-ready"] for player in player_list)
             # Increase iterator if all Players are ready
             if all_players_ready:
                 loop_iteration += 1
