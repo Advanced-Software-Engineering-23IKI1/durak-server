@@ -32,6 +32,8 @@ class GameLoop:
 
         self.state = GameState.Running
 
+        self._turn_kill = False  # janky solution for communicating across inner loop recursions on attack forwarding
+
     @property
     def players(self) -> tuple[Player, ...]:
         return self._players
@@ -102,7 +104,7 @@ class GameLoop:
         base_msg = f"Attack on {target.name} (id={target.player_id}) using {attacking_cards} failed on"
 
         # only 1 card type
-        if len([card.value for card in attacking_cards]) > 1:
+        if len(set([card.value for card in attacking_cards])) > 1:
             self._logger.debug(base_msg + " unique card type.")
             return False
         # enough cards left for attack
@@ -198,10 +200,12 @@ class GameLoop:
                 return False
 
         # 3. check card limit of next player
-        if not self.is_attack_valid(
-            target, [attack["attack_card"] for attack in self._attack_buffer] + cards
-        ):
+        if not len(cards) <= len(target.hand):
             return False
+        # if not self.is_attack_valid(
+        #     target, [attack["attack_card"] for attack in self._attack_buffer] + cards
+        # ):
+        #     return False
 
         return True
 
@@ -233,7 +237,7 @@ class GameLoop:
         defend_complete = False
         pickup = False
         defense_started = False
-        while self.state == GameState.Running and not defend_complete and not pickup:
+        while self.state == GameState.Running and not defend_complete and not pickup and not self._turn_kill:
             processed_any = False
             for player in self._game_player_list:
                 while self.state == GameState.Running:
@@ -332,6 +336,7 @@ class GameLoop:
                                 self.update_info()
             if not processed_any:
                 time.sleep(0.05)
+        self._turn_kill = True
 
     def turn(self):
         """game turn
@@ -386,7 +391,9 @@ class GameLoop:
         for player in self._game_player_list:
             player.game_status = PlayerGameStatus.Attacker
         self.broadcast_player_status()
+        self._turn_kill = False
         self.inner_loop()
+        self._logger.debug("Turn finished.")
 
     def _get_cardgroup_idx(self, s_card: Card) -> int:
         for idx, cardgroup in enumerate(self._game_config.cards):
