@@ -211,13 +211,10 @@ class GameLoop:
 
     def forward(self, origin: Player, cards: list[Card]):
         for card in cards:
-            self._game_player_list[
-                (self._cur_attacker_idx + 1) % len(self._game_player_list)
-            ].remove_card(card)
-            for card in cards:
-                self._attack_buffer.append(
-                    {"attack_card": card, "defend_card": None, "from_player": origin}
-                )
+            origin.remove_card(card)
+            self._attack_buffer.append(
+                {"attack_card": card, "defend_card": None, "from_player": origin}
+            )
         self._cur_attacker_idx = (self._cur_attacker_idx + 1) % len(
             self._game_player_list
         )
