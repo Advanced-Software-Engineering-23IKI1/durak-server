@@ -112,10 +112,13 @@ class GameLoop:
             self._logger.debug(base_msg + " remaining attack card count.")
             return False
         # card value already attacking or initial attack
+        valid_values = []
+        for attack in self._attack_buffer:
+            valid_values.append(attack["attack_card"].value)
+            if attack["defend_card"] is not None:
+                valid_values.append(attack["defend_card"].value)
         if not (
-            len(self._attack_buffer) == 0
-            or attacking_cards[0].value
-            in [attack["attack_card"].value for attack in self._attack_buffer]
+            len(self._attack_buffer) == 0 or attacking_cards[0].value in valid_values
         ):
             self._logger.debug(base_msg + " card type present or initial.")
             return False
@@ -234,7 +237,12 @@ class GameLoop:
         defend_complete = False
         pickup = False
         defense_started = False
-        while self.state == GameState.Running and not defend_complete and not pickup and not self._turn_kill:
+        while (
+            self.state == GameState.Running
+            and not defend_complete
+            and not pickup
+            and not self._turn_kill
+        ):
             processed_any = False
             for player in self._game_player_list:
                 while self.state == GameState.Running:
