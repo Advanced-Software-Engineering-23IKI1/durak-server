@@ -79,7 +79,7 @@ class GameLoop:
                         if other_player != player
                     ],
                     draw_pile=len(self._drawpile),
-                    trump=self._trump_card.id if self._trump_card else None,
+                    trump=self._trump_card.id if not self._drawpile.is_depleted else None,
                     player_order=[p.player_id for p in self._players],
                 )
             )
