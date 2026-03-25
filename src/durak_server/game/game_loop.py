@@ -251,10 +251,6 @@ class GameLoop:
         # 3. check card limit of next player
         if not len(cards) <= len(target.hand):
             return False
-        # if not self.is_attack_valid(
-        #     target, [attack["attack_card"] for attack in self._attack_buffer] + cards
-        # ):
-        #     return False
 
         return True
 
