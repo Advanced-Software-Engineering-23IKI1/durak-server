@@ -183,12 +183,19 @@ class GameSession:
         if self._game_loop_engine is not None:
             self._game_loop_engine.game_start_routine()
             self._game_loop_engine.loop()
+            self.state = self._game_loop_engine.state
 
         if self.state is GameState.Ended:
             self.end_routine()
 
     def end_routine(self):
         # Send end-routine package
+        scoreboard = []
+        if self._game_loop_engine is not None:
+            scoreboard = [
+                player.player_id for player in self._game_loop_engine.leaderboard
+            ]
+        self.broadcast(durak_server.packages.EndRoutinePackage(scoreboard=scoreboard))
 
         # Wait for packages to be sent
         time.sleep(0.5)
