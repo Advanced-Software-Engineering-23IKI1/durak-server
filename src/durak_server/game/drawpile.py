@@ -17,9 +17,16 @@ class DrawPile:
         self._cards = deque(cards)
         self._trump_card = self._draw_trump(trump_suit)
 
+    
+    
     @property
     def trump_card(self) -> Card:
         return self._trump_card
+
+    @property
+    def is_depleted(self) -> bool:
+        """Return whether the draw pile is depleted (excluding the trump card)."""
+        return len(self._cards) == 0
 
     def draw(self, count: int) -> list[Card]:
         """Draw cards from the draw pile
@@ -62,6 +69,12 @@ class DrawPile:
         return None
 
     def __len__(self):
+        """Returns cards excluding the trump card, which is not part of the actual draw pile, but is drawn last. 
+        Use is_depleted property to check for draw pile depletion instead of relying on length.
+
+        Returns:
+            int: length of the draw pile
+        """
         if len(self._cards) == 0:
             return 0
-        return len(self._cards) - 1  # the trump card is not part of the draw pile, it is drawn at the start of the game and placed aside
+        return len(self._cards) - 1  

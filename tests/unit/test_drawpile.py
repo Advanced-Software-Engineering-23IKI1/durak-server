@@ -22,6 +22,7 @@ class TestDrawPile(unittest.TestCase):
         test_cards = Deck32().cards
         drawpile = DrawPile(test_cards, CardSuit.HEARTS)
         self.assertEqual(len(drawpile._cards), len(test_cards), f"{len(drawpile._cards)} cards in drawpile, expected {len(test_cards)}")
+        self.assertFalse(drawpile.is_depleted, "Expected draw pile to not be depleted after initialization")
 
     def test_002_drawpile_draw(self):
         """test if drawpile draws the correct amount of cards and removes them from the drawpile"""
@@ -55,6 +56,7 @@ class TestDrawPile(unittest.TestCase):
         trump_card = drawpile.trump_card
         drawn_without_trump = drawpile.draw(len(drawpile))
 
+        self.assertFalse(drawpile.is_depleted, "Expected draw pile to not be depleted before trump is drawn")
         self.assertEqual(len(drawpile), 0, "Expected draw pile to be empty excluding trump card")
         self.assertEqual(len(drawpile._cards), 1, "Expected only the trump card to remain in internal storage")
         self.assertNotIn(trump_card, drawn_without_trump, "Trump card must not be drawn before draw pile depletion")
@@ -62,6 +64,7 @@ class TestDrawPile(unittest.TestCase):
         drawn_trump = drawpile.draw(1)
         self.assertEqual(drawn_trump, [trump_card], "Expected trump card to be drawn last")
 
+        self.assertTrue(drawpile.is_depleted, "Expected draw pile to be depleted after drawing trump")
         self.assertEqual(drawpile.draw(1), [], "Expected no cards to be drawn after full depletion")
         self.assertEqual(len(drawpile._cards), 0, "Expected internal storage to be empty after drawing trump")
 

@@ -224,7 +224,7 @@ class GameLoop:
                 if (
                     self._game_config.all_card_defend_early_end
                     and player.game_status == PlayerGameStatus.Defender
-                ) or len(self._drawpile) + 1 == 0:
+                ) or self._drawpile.is_depleted:
                     player.game_status = PlayerGameStatus.Finished
                     self._leaderboard.append(player)
                     self._game_player_list.remove(player)
