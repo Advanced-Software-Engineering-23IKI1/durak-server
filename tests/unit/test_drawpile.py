@@ -47,5 +47,23 @@ class TestDrawPile(unittest.TestCase):
         self.assertIsNotNone(trump_card, "Expected trump card not found")
         self.assertEqual(trump_card.suit, CardSuit.HEARTS, f"Expected trump card of suit {CardSuit.HEARTS}, got {trump_card.suit}")
 
+    def test_005_drawpile_depletion_draws_trump_last(self):
+        """test if drawpile depletes correctly and the trump card is drawn last"""
+        test_cards = Deck32().cards
+        drawpile = DrawPile(test_cards, CardSuit.HEARTS)
+
+        trump_card = drawpile.trump_card
+        drawn_without_trump = drawpile.draw(len(drawpile))
+
+        self.assertEqual(len(drawpile), 0, "Expected draw pile to be empty excluding trump card")
+        self.assertEqual(len(drawpile._cards), 1, "Expected only the trump card to remain in internal storage")
+        self.assertNotIn(trump_card, drawn_without_trump, "Trump card must not be drawn before draw pile depletion")
+
+        drawn_trump = drawpile.draw(1)
+        self.assertEqual(drawn_trump, [trump_card], "Expected trump card to be drawn last")
+
+        self.assertEqual(drawpile.draw(1), [], "Expected no cards to be drawn after full depletion")
+        self.assertEqual(len(drawpile._cards), 0, "Expected internal storage to be empty after drawing trump")
+
 if __name__ == "__main__":
     unittest.main()
