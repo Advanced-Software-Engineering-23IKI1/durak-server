@@ -14,7 +14,7 @@ from durak_server.player import PlayerGameStatus
 from durak_server.game_state import GameState
 
 # hardcoding for now -> file based config later
-GRACE_PERIOD = 40  # number of turns to wait before defense state is resolved (time~period*loop_wait)
+GRACE_PERIOD = 60  # number of turns to wait before defense state is resolved (time~period*loop_wait)
 
 class DefenseState(Enum):
     NONE = -1,
@@ -403,8 +403,10 @@ class GameLoop:
                     defense_state = DefenseState.GRACE_PERIOD
                 elif defense_started:
                     defense_state = DefenseState.DEFENDING
+                    defense_grace_counter = 0
                 else:
                     defense_state = DefenseState.NONE
+                    defense_grace_counter = 0
                 self.update_info()
 
         self._turn_kill = True
