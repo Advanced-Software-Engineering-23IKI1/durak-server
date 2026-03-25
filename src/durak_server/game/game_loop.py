@@ -44,6 +44,8 @@ class GameLoop:
 
         self._turn_kill = False  # janky solution for communicating across inner loop recursions on attack forwarding
 
+        self._designated_defender = None
+
     @property
     def players(self) -> tuple[Player, ...]:
         return self._players
@@ -278,11 +280,11 @@ class GameLoop:
         """inner game loop.
         This function models the game behaviour after the initial attack has been done (all players are attackers)
         """
-        designated_defender = self._game_player_list[
+        self._designated_defender = self._game_player_list[
             (self._cur_attacker_idx + 1) % len(self._game_player_list)
         ]
         self._logger.debug(
-            f"Entered inner attack loop, designated_defender={designated_defender.name} (id={designated_defender.player_id})"
+            f"Entered inner attack loop, designated_defender={self._designated_defender.name} (id={self._designated_defender.player_id})"
         )
         pickup = False
         defense_started = False
@@ -308,7 +310,7 @@ class GameLoop:
                                 for card_int in received_package.cards
                             ]
                             if (
-                                player == designated_defender
+                                player == self._designated_defender
                                 and not defense_started
                                 and self.is_attack_forwarding_possible(
                                     attack_cards,
@@ -322,9 +324,9 @@ class GameLoop:
                                     self.draw_list.append(player)
                                 self.forward(player, attack_cards)
                                 processed_any = True
-                            elif player != designated_defender:
+                            elif player != self._designated_defender:
                                 if not self.is_attack_valid(
-                                    designated_defender, attack_cards
+                                    self._designated_defender, attack_cards
                                 ):
                                     player.send_package(
                                         durak_server.packages.InvalidAttackExceptionPackage(
@@ -333,14 +335,14 @@ class GameLoop:
                                     )
                                     continue
                                 self.perform_attack(
-                                    player, designated_defender, attack_cards
+                                    player, self._designated_defender, attack_cards
                                 )
                                 processed_any = True
                                 if player not in self.draw_list:
                                     self.draw_list.append(player)
 
                         case durak_server.packages.PlayerSurrenderPackage():
-                            if player == designated_defender:
+                            if player == self._designated_defender:
                                 self._logger.debug(
                                     f"Player {player.name} (id={player.player_id}) surrendered"
                                 )
@@ -352,7 +354,7 @@ class GameLoop:
                                     for attack in self._attack_buffer
                                     if attack["defend_card"] is not None
                                 ]
-                                designated_defender.hand.extend(cards_to_pickup)
+                                self._designated_defender.hand.extend(cards_to_pickup)
                                 self._attack_buffer.clear()
                                 self.check_players_finished()
                                 pickup = True
@@ -361,7 +363,7 @@ class GameLoop:
                                 ) % len(self._game_player_list)
 
                         case durak_server.packages.PlayerDefensePackage():
-                            if player != designated_defender:
+                            if player != self._designated_defender:
                                 continue
                             any_defend_performed = False
                             for cardpair in received_package.defense:
@@ -375,12 +377,12 @@ class GameLoop:
                                     )
                                     continue
                                 if self.perform_defense(
-                                    designated_defender, attack_card, defense_card
+                                    self._designated_defender, attack_card, defense_card
                                 ):
                                     any_defend_performed = True
                             if any_defend_performed:
-                                if designated_defender not in self.draw_list:
-                                    self.draw_list.append(designated_defender)
+                                if self._designated_defender not in self.draw_list:
+                                    self.draw_list.append(self._designated_defender)
                                 player.game_status = PlayerGameStatus.Defender
                                 defense_started = True  # forwarding no longer possible
                                 defense_state = DefenseState.DEFENDING
@@ -422,7 +424,7 @@ class GameLoop:
                 attacker = player
             else:
                 player.game_status = PlayerGameStatus.Observer
-        designated_defender = self._game_player_list[
+        self._designated_defender = self._game_player_list[
             (self._cur_attacker_idx + 1) % len(self._game_player_list)
         ]
         self.broadcast_player_status()
@@ -444,7 +446,7 @@ class GameLoop:
             attack_card_list = [
                 self.get_card_by_id(card_int) for card_int in response.cards
             ]
-            if not self.is_attack_valid(designated_defender, attack_card_list):
+            if not self.is_attack_valid(self._designated_defender, attack_card_list):
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
                         "attack invalid"
@@ -453,7 +455,7 @@ class GameLoop:
                 continue
 
             initial_attack_complete = self.perform_attack(
-                attacker, designated_defender, attacking_cards=attack_card_list
+                attacker, self._designated_defender, attacking_cards=attack_card_list
             )
 
         if self.state != GameState.Running:
@@ -536,6 +538,10 @@ class GameLoop:
     def redraw(self):
         """redraw cards after finished turn
         """
+        if self._designated_defender in self.draw_list:
+            # add defender as last redraw
+            self.draw_list.remove(self._designated_defender)
+            self.draw_list.append(self._designated_defender)
         for player in self.draw_list:
             if len(player.hand) < self._game_config.player_card_count:
                 player.hand = player.hand + self._drawpile.draw(
