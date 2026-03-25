@@ -4,6 +4,7 @@ from durak_server.game.drawpile import DrawPile
 from durak_server.game.card import Card
 from random import shuffle
 import itertools
+from enum import Enum
 import time
 from durak_server.server_logging import SessionLogger
 
@@ -11,6 +12,14 @@ import durak_server.packages
 from durak_server.player import PlayerGameStatus
 from durak_server.game_state import GameState
 
+# hardcoding for now -> file based config later
+GRACE_PERIOD = 40  # number of turns to wait before defense state is resolved (time~period*loop_wait)
+
+class DefenseState(Enum):
+    NONE = -1,
+    DEFENDING = 0,
+    GRACE_PERIOD = 1,
+    RESOLVED = 2,
 
 class GameLoop:
     def __init__(
@@ -234,12 +243,13 @@ class GameLoop:
         self._logger.debug(
             f"Entered inner attack loop, designated_defender={designated_defender.name} (id={designated_defender.player_id})"
         )
-        defend_complete = False
         pickup = False
         defense_started = False
+        defense_state = DefenseState.NONE
+        defense_grace_counter = 0
         while (
             self.state == GameState.Running
-            and not defend_complete
+            and not defense_state == DefenseState.RESOLVED
             and not pickup
             and not self._turn_kill
         ):
@@ -249,7 +259,7 @@ class GameLoop:
                     received_package = player.read_package()
                     if received_package is None:
                         break
-                    processed_any = True
+                    
                     match received_package:
                         case durak_server.packages.PlayerAttackPackage():
                             attack_cards = [
@@ -270,6 +280,7 @@ class GameLoop:
                                 if player not in self.draw_list:
                                     self.draw_list.append(player)
                                 self.forward(player, attack_cards)
+                                processed_any = True
                             elif player != designated_defender:
                                 if not self.is_attack_valid(
                                     designated_defender, attack_cards
@@ -283,6 +294,7 @@ class GameLoop:
                                 self.perform_attack(
                                     player, designated_defender, attack_cards
                                 )
+                                processed_any = True
                                 if player not in self.draw_list:
                                     self.draw_list.append(player)
 
@@ -302,7 +314,6 @@ class GameLoop:
                                 designated_defender.hand.extend(cards_to_pickup)
                                 self._attack_buffer.clear()
                                 self.check_players_finished()
-                                self.update_info()
                                 pickup = True
                                 self._cur_attacker_idx = (
                                     self._cur_attacker_idx + 2
@@ -311,7 +322,7 @@ class GameLoop:
                         case durak_server.packages.PlayerDefensePackage():
                             if player != designated_defender:
                                 continue
-                            any_attack_performed = False
+                            any_defend_performed = False
                             for cardpair in received_package.defense:
                                 attack_card = self.get_card_by_id(cardpair["attack_id"])
                                 defense_card = self.get_card_by_id(
@@ -325,22 +336,36 @@ class GameLoop:
                                 if self.perform_defense(
                                     designated_defender, attack_card, defense_card
                                 ):
-                                    any_attack_performed = True
-                            if any_attack_performed:
+                                    any_defend_performed = True
+                            if any_defend_performed:
                                 if designated_defender not in self.draw_list:
                                     self.draw_list.append(designated_defender)
                                 player.game_status = PlayerGameStatus.Defender
                                 defense_started = True  # forwarding no longer possible
-                                defend_complete = self.is_defense_complete()
-                                if defend_complete:
-                                    self._attack_buffer.clear()
-                                    self._cur_attacker_idx = (
-                                        self._cur_attacker_idx + 1
-                                    ) % len(self._game_player_list)
-                                    self.check_players_finished()
-                                self.update_info()
+                                defense_state = DefenseState.DEFENDING
+                                processed_any = True
             if not processed_any:
+                if defense_state == DefenseState.GRACE_PERIOD:
+                    defense_grace_counter += 1
+                    if defense_grace_counter == GRACE_PERIOD:
+                        defense_state = DefenseState.RESOLVED
+                if defense_state == DefenseState.RESOLVED:
+                    self._attack_buffer.clear()
+                    self._cur_attacker_idx = (
+                        self._cur_attacker_idx + 1
+                    ) % len(self._game_player_list)
+                    self.check_players_finished()
+                    self.update_info()
                 time.sleep(0.05)
+            else:
+                if self.is_defense_complete():
+                    defense_state = DefenseState.GRACE_PERIOD
+                elif defense_started:
+                    defense_state = DefenseState.DEFENDING
+                else:
+                    defense_state = DefenseState.NONE
+                self.update_info()
+
         self._turn_kill = True
 
     def turn(self):
@@ -427,6 +452,8 @@ class GameLoop:
         return True
 
     def is_defense_complete(self) -> bool:
+        if len(self._attack_buffer) == 0:
+            return False
         return all(
             [attack["defend_card"] is not None for attack in self._attack_buffer]
         )
