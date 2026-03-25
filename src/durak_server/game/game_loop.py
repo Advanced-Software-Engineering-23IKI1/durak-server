@@ -7,6 +7,7 @@ import itertools
 from enum import Enum
 import time
 from durak_server.server_logging import SessionLogger
+from durak_server._typing import GamePackage
 
 import durak_server.packages
 from durak_server.player import PlayerGameStatus
@@ -47,11 +48,18 @@ class GameLoop:
     def players(self) -> tuple[Player, ...]:
         return self._players
 
-    def broadcast(self, package):
+    def broadcast(self, package: GamePackage):
+        """sends a package to all players
+
+        Args:
+            package (GamePackage): the package to broadcast
+        """
         for player in self._players:
             player.send_package(package)
 
     def broadcast_player_hands_update(self):
+        """send the PlayerHandsUpdatePackage to all players
+        """
         for player in self.players:
             player.send_package(
                 durak_server.packages.PlayerHandsUpdatePackage(
@@ -71,6 +79,10 @@ class GameLoop:
             )
 
     def game_start_routine(self):
+        """handle game start:
+        - setting trump and drawpile
+        - distributing cards
+        """
         self._trump_suit = self._game_config.trump
         deck_cards = [
             card for card_group in self._game_config.cards for card in card_group
@@ -84,6 +96,8 @@ class GameLoop:
         self.broadcast_player_hands_update()
 
     def broadcast_player_status(self):
+        """sending the player status package to all players
+        """
         self.broadcast(
             durak_server.packages.PlayerStatusPackage(
                 statuses=[
@@ -93,7 +107,15 @@ class GameLoop:
             )
         )
 
-    def get_card_by_id(self, id: int):
+    def get_card_by_id(self, id: int) -> Card | None:
+        """helper function to get the card item by the id
+
+        Args:
+            id (int): card id
+
+        Returns:
+            Card | None
+        """
         cards = list(itertools.chain(*self._game_config.cards))
         for card in cards:
             if card.id == id:
@@ -167,6 +189,8 @@ class GameLoop:
         return success
 
     def update_info(self):
+        """update player hands and table
+        """
         self.broadcast_player_hands_update()
         self.broadcast_table_update()
 
@@ -186,7 +210,9 @@ class GameLoop:
             )
         )
 
-    def check_players_finished(self):
+    def check_players_finished(self) -> None:
+        """check if any players are finished playing
+        """
         for player in self._game_player_list:
             if len(player.hand) == 0:
                 if (
@@ -198,6 +224,15 @@ class GameLoop:
                     self._game_player_list.remove(player)
 
     def is_attack_forwarding_possible(self, cards: list[Card], target: Player) -> bool:
+        """check if attack forwarding is possible
+
+        Args:
+            cards (list[Card]): the cards the player intends to add (! not the new total attack !)
+            target (Player): target player
+
+        Returns:
+            bool: validity flag
+        """
         # 1. check basic rules
         if not self._game_config.attack_forwarding:
             return False
@@ -222,6 +257,12 @@ class GameLoop:
         return True
 
     def forward(self, origin: Player, cards: list[Card]):
+        """perform an attack forwarding operation
+
+        Args:
+            origin (Player): origin player
+            cards (list[Card]): cards the player intends to add for forwarding (! not the new total attack !)
+        """
         for card in cards:
             origin.remove_card(card)
             self._attack_buffer.append(
@@ -426,6 +467,14 @@ class GameLoop:
         self._logger.debug("Turn finished.")
 
     def _get_cardgroup_idx(self, s_card: Card) -> int:
+        """get index of the cardgroup that s_card is a member of
+
+        Args:
+            s_card (Card): input card
+
+        Returns:
+            int: cardgroup index
+        """
         for idx, cardgroup in enumerate(self._game_config.cards):
             for card in cardgroup:
                 if card == s_card:
@@ -433,6 +482,15 @@ class GameLoop:
         return None
 
     def is_defense_valid(self, attack_card: Card, defend_card: Card) -> bool:
+        """check if a defense is valid
+
+        Args:
+            attack_card (Card): attacking card
+            defend_card (Card): defending card
+
+        Returns:
+            bool: flag
+        """
         return self._get_cardgroup_idx(attack_card) < self._get_cardgroup_idx(
             defend_card
         )
@@ -440,6 +498,16 @@ class GameLoop:
     def perform_defense(
         self, defender: Player, attack_card: Card, defend_card: Card
     ) -> bool:
+        """perform a defense
+
+        Args:
+            defender (Player): defending player
+            attack_card (Card): attacking card
+            defend_card (Card): defending card
+
+        Returns:
+            bool: success flag
+        """
         for attack in self._attack_buffer:
             if attack["attack_card"] == attack_card:
                 if (
@@ -452,6 +520,11 @@ class GameLoop:
         return True
 
     def is_defense_complete(self) -> bool:
+        """check if the attacking buffer is being completely defended
+
+        Returns:
+            bool
+        """
         if len(self._attack_buffer) == 0:
             return False
         return all(
@@ -459,6 +532,8 @@ class GameLoop:
         )
 
     def redraw(self):
+        """redraw cards after finished turn
+        """
         for player in self.draw_list:
             if len(player.hand) < self._game_config.player_card_count:
                 player.hand = player.hand + self._drawpile.draw(
@@ -468,6 +543,8 @@ class GameLoop:
         self.update_info()
 
     def loop(self):
+        """main game loop
+        """
         while self.state == GameState.Running:
             self.turn()
             self.redraw()
