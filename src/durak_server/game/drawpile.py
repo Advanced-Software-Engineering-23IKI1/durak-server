@@ -62,6 +62,6 @@ class DrawPile:
         return None
 
     def __len__(self):
-        return (
-            len(self._cards) - 1
-        )  # the trump card is not part of the draw pile, it is drawn at the start of the game and placed aside
+        if len(self._cards) == 0:
+            return 0
+        return len(self._cards) - 1  # the trump card is not part of the draw pile, it is drawn at the start of the game and placed aside
