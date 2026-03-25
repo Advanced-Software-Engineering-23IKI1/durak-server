@@ -47,6 +47,10 @@ class GameLoop:
         self._designated_defender = None
 
     @property
+    def leaderboard(self) -> tuple[Player, ...]:
+        return tuple(self._leaderboard)
+
+    @property
     def players(self) -> tuple[Player, ...]:
         return self._players
 
@@ -215,15 +219,31 @@ class GameLoop:
     def check_players_finished(self) -> None:
         """check if any players are finished playing
         """
-        for player in self._game_player_list:
+        for player in list(self._game_player_list):
             if len(player.hand) == 0:
                 if (
                     self._game_config.all_card_defend_early_end
                     and player.game_status == PlayerGameStatus.Defender
-                ) or len(self._drawpile) + 1 == 0:
+                ) or self._drawpile.is_depleted:
                     player.game_status = PlayerGameStatus.Finished
                     self._leaderboard.append(player)
                     self._game_player_list.remove(player)
+        self._check_game_end()
+
+    def _check_game_end(self):
+        """check if the game has ended (only 1 or fewer players remaining)
+        """
+        if self.state != GameState.Running:
+            return
+
+        if len(self._game_player_list) <= 1:
+            for player in self._game_player_list:
+                if player not in self._leaderboard:
+                    self._leaderboard.append(player)
+                player.game_status = PlayerGameStatus.Finished
+            self.state = GameState.Ended
+            self.broadcast_player_status()
+            self._logger.info("Game ended")
 
     def is_attack_forwarding_possible(self, cards: list[Card], target: Player) -> bool:
         """check if attack forwarding is possible
@@ -551,4 +571,6 @@ class GameLoop:
         """
         while self.state == GameState.Running:
             self.turn()
+            if self.state != GameState.Running:
+                break
             self.redraw()
