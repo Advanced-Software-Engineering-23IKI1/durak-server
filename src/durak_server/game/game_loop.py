@@ -266,7 +266,7 @@ class GameLoop:
                 return False
 
         # 3. check card limit of next player
-        if not len(cards) <= len(target.hand):
+        if len(cards) > len(target.hand):
             return False
 
         return True
