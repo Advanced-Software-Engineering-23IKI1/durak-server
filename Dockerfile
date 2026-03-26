@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY requirements.txt . 
 COPY src ./src
+COPY config.ini .
 COPY tests ./tests
 
 RUN python3 -m pip install -r requirements.txt
