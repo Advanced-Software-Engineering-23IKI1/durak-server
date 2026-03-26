@@ -215,8 +215,13 @@ class GameLoop:
             )
         )
 
-    def check_players_finished(self) -> None:
-        """check if any players are finished playing"""
+    def check_players_finished(self) -> int:
+        """check if any players are finished playing
+
+        Returns:
+            int: number of players that have finished
+        """
+        players_removed = 0
         for player in list(self._game_player_list):
             if len(player.hand) == 0:
                 if (
@@ -226,7 +231,9 @@ class GameLoop:
                     player.game_status = PlayerGameStatus.Finished
                     self._leaderboard.append(player)
                     self._game_player_list.remove(player)
+                    players_removed += 1
         self._check_game_end()
+        return players_removed
 
     def _check_game_end(self):
         """check if the game has ended (only 1 or fewer players remaining)"""
@@ -332,12 +339,12 @@ class GameLoop:
                                         % len(self._game_player_list)
                                     ],
                                 )
-                            ):
+                            ):  # forwarding branch
                                 if player not in self.draw_list:
                                     self.draw_list.append(player)
                                 self.forward(player, attack_cards)
                                 processed_any = True
-                            elif player != self._designated_defender:
+                            elif player != self._designated_defender:  # defense branch
                                 if not self.is_attack_valid(
                                     self._designated_defender, attack_cards
                                 ):
@@ -369,10 +376,10 @@ class GameLoop:
                                 ]
                                 self._designated_defender.hand.extend(cards_to_pickup)
                                 self._attack_buffer.clear()
-                                self.check_players_finished()
+                                players_finished = self.check_players_finished()
                                 pickup = True
                                 self._cur_attacker_idx = (
-                                    self._cur_attacker_idx + 2
+                                    self._cur_attacker_idx + 2 - players_finished
                                 ) % len(self._game_player_list)
 
                         case durak_server.packages.PlayerDefensePackage():
