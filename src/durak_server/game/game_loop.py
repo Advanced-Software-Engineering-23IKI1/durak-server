@@ -407,10 +407,10 @@ class GameLoop:
                         defense_state = DefenseState.RESOLVED
                 if defense_state == DefenseState.RESOLVED:
                     self._attack_buffer.clear()
+                    self.check_players_finished()
                     self._cur_attacker_idx = (self._cur_attacker_idx + 1) % len(
                         self._game_player_list
                     )
-                    self.check_players_finished()
                     self.update_info()
                 time.sleep(0.05)
             else:
