@@ -16,11 +16,13 @@ from durak_server.game_state import GameState
 # hardcoding for now -> file based config later
 GRACE_PERIOD = 60  # number of turns to wait before defense state is resolved (time~period*loop_wait)
 
+
 class DefenseState(Enum):
-    NONE = -1,
-    DEFENDING = 0,
-    GRACE_PERIOD = 1,
-    RESOLVED = 2,
+    NONE = (-1,)
+    DEFENDING = (0,)
+    GRACE_PERIOD = (1,)
+    RESOLVED = (2,)
+
 
 class GameLoop:
     def __init__(
@@ -34,9 +36,7 @@ class GameLoop:
         self._leaderboard = []
         self._attack_buffer = []  # list of dicts for the current attack
         # {"attack_card": attacking Card obj, "defend_card": defending Card obj, "from_player": Player obj that attacked}
-        self._attack_max = (
-            0  # max amount of cards valid for attacking (=initial defender hand count)
-        )
+
         self.draw_list = []
         self._cur_attacker_idx = 0
 
@@ -64,8 +64,7 @@ class GameLoop:
             player.send_package(package)
 
     def broadcast_player_hands_update(self):
-        """send the PlayerHandsUpdatePackage to all players
-        """
+        """send the PlayerHandsUpdatePackage to all players"""
         for player in self.players:
             player.send_package(
                 durak_server.packages.PlayerHandsUpdatePackage(
@@ -79,7 +78,9 @@ class GameLoop:
                         if other_player != player
                     ],
                     draw_pile=len(self._drawpile),
-                    trump=self._trump_card.id if not self._drawpile.is_depleted else None,
+                    trump=(
+                        self._trump_card.id if not self._drawpile.is_depleted else None
+                    ),
                     player_order=[p.player_id for p in self._players],
                 )
             )
@@ -102,8 +103,7 @@ class GameLoop:
         self.broadcast_player_hands_update()
 
     def broadcast_player_status(self):
-        """sending the player status package to all players
-        """
+        """sending the player status package to all players"""
         self.broadcast(
             durak_server.packages.PlayerStatusPackage(
                 statuses=[
@@ -145,7 +145,7 @@ class GameLoop:
             self._logger.debug(base_msg + " unique card type.")
             return False
         # enough cards left for attack
-        if self._attack_max > len(attacking_cards) + len(self._attack_buffer):
+        if len(target.hand) < len(attacking_cards) + len([attack["defend_card"] for attack in self._attack_buffer if attack["defend_card"] is None]):
             self._logger.debug(base_msg + " remaining attack card count.")
             return False
         # card value already attacking or initial attack
@@ -195,8 +195,7 @@ class GameLoop:
         return success
 
     def update_info(self):
-        """update player hands and table
-        """
+        """update player hands and table"""
         self.broadcast_player_hands_update()
         self.broadcast_table_update()
 
@@ -217,8 +216,7 @@ class GameLoop:
         )
 
     def check_players_finished(self) -> None:
-        """check if any players are finished playing
-        """
+        """check if any players are finished playing"""
         for player in list(self._game_player_list):
             if len(player.hand) == 0:
                 if (
@@ -231,8 +229,7 @@ class GameLoop:
         self._check_game_end()
 
     def _check_game_end(self):
-        """check if the game has ended (only 1 or fewer players remaining)
-        """
+        """check if the game has ended (only 1 or fewer players remaining)"""
         if self.state != GameState.Running:
             return
 
@@ -318,7 +315,7 @@ class GameLoop:
                     received_package = player.read_package()
                     if received_package is None:
                         break
-                    
+
                     match received_package:
                         case durak_server.packages.PlayerAttackPackage():
                             attack_cards = [
@@ -410,9 +407,9 @@ class GameLoop:
                         defense_state = DefenseState.RESOLVED
                 if defense_state == DefenseState.RESOLVED:
                     self._attack_buffer.clear()
-                    self._cur_attacker_idx = (
-                        self._cur_attacker_idx + 1
-                    ) % len(self._game_player_list)
+                    self._cur_attacker_idx = (self._cur_attacker_idx + 1) % len(
+                        self._game_player_list
+                    )
                     self.check_players_finished()
                     self.update_info()
                 time.sleep(0.05)
@@ -511,9 +508,15 @@ class GameLoop:
         Returns:
             bool: flag
         """
-        return self._get_cardgroup_idx(attack_card) < self._get_cardgroup_idx(
+        if not self._get_cardgroup_idx(attack_card) < self._get_cardgroup_idx(
             defend_card
-        )
+        ):
+            return False
+        
+        if not (attack_card.suit == defend_card.suit or defend_card.suit == self._game_config.trump):
+            return False
+
+        return True
 
     def perform_defense(
         self, defender: Player, attack_card: Card, defend_card: Card
@@ -552,8 +555,7 @@ class GameLoop:
         )
 
     def redraw(self):
-        """redraw cards after finished turn
-        """
+        """redraw cards after finished turn"""
         if self._designated_defender in self.draw_list:
             # add defender as last redraw
             self.draw_list.remove(self._designated_defender)
@@ -567,8 +569,7 @@ class GameLoop:
         self.update_info()
 
     def loop(self):
-        """main game loop
-        """
+        """main game loop"""
         while self.state == GameState.Running:
             self.turn()
             if self.state != GameState.Running:
