@@ -456,7 +456,7 @@ class GameLoop:
             if not isinstance(response, durak_server.packages.PlayerAttackPackage):
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
-                        "attack invalid"
+                        "Package is not related to player attack!"
                     )
                 )
                 continue
