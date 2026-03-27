@@ -1,5 +1,5 @@
 from durak_server.config.game_config import BasicGameConfig, GameConfig
-from durak_server.game.card import CardValue, Deck52
+from durak_server.game.card import CardValue, Deck52, Deck32
 from durak_server.config.card_distribution import CARDCOUNT_MAPPING
 from durak_server import CONFIG
 
