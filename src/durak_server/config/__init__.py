@@ -11,3 +11,4 @@ default_game_config = BasicGameConfig(
 
     player_card_count=int(CONFIG.get("game", "PLAYER_CARD_COUNT")),
     deck= {"52": Deck52(), "32": Deck32()}[CONFIG.get("game", "DECK_TYPE")]
+)
