@@ -80,7 +80,7 @@ class TcpServer:
                     player.name = package.playername
                     session = self.create_game_session()
                     player.gamecode = session.code
-                    player.can_modify_config = True
+                    player.can_modify_config = bool(CONFIG.get("server", "CONFIG_CAN_BE_MODIFIED"))
                     session.add_player(player)
                     self.players.remove(player)
                 elif isinstance(package, ConnectToGameSessionPackage):
