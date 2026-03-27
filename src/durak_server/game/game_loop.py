@@ -127,8 +127,8 @@ class GameLoop:
             if card.id == id:
                 return card
 
-    def is_attack_valid(self, target: Player, attacking_cards: list[Card]) -> bool:
-        """check whether an attack is valid
+    def is_attack_valid(self, target: Player, attacking_cards: list[Card]) -> (bool, str):
+        """check whether an attack is valid 
         #! does not perform the actual attack!
 
         Args:
@@ -136,18 +136,21 @@ class GameLoop:
             attacking_cards (list[Card]): list of attacking cards
 
         Returns:
-            bool
+            (bool, str): validity, error message
         """
         base_msg = f"Attack on {target.name} (id={target.player_id}) using {attacking_cards} failed on"
 
         # only 1 card type
         if len(set([card.value for card in attacking_cards])) > 1:
-            self._logger.debug(base_msg + " unique card type.")
-            return False
+            error_message = base_msg + " unique card type."
+            self._logger.debug(error_message)
+            return (False, error_message)
         # enough cards left for attack
         if len(target.hand) < len(attacking_cards) + len([attack["defend_card"] for attack in self._attack_buffer if attack["defend_card"] is None]):
-            self._logger.debug(base_msg + " remaining attack card count.")
-            return False
+            error_message = base_msg + " remaining attack card count."
+            self._logger.debug(error_message)
+            return (False, error_message)
+        
         # card value already attacking or initial attack
         valid_values = []
         for attack in self._attack_buffer:
@@ -157,9 +160,10 @@ class GameLoop:
         if not (
             len(self._attack_buffer) == 0 or attacking_cards[0].value in valid_values
         ):
-            self._logger.debug(base_msg + " card type present or initial.")
-            return False
-        return True
+            error_message = base_msg + " card type present or initial."
+            self._logger.debug(error_message)
+            return (False, error_message)
+        return (True, "")
 
     def perform_attack(
         self, origin: Player, target: Player, attacking_cards: list[Card]
@@ -344,13 +348,13 @@ class GameLoop:
                                     self.draw_list.append(player)
                                 self.forward(player, attack_cards)
                                 processed_any = True
+
                             elif player != self._designated_defender:  # defense branch
-                                if not self.is_attack_valid(
-                                    self._designated_defender, attack_cards
-                                ):
+                                is_valid, response = self.is_attack_valid(self._designated_defender, attack_cards)
+                                if not is_valid:
                                     player.send_package(
                                         durak_server.packages.InvalidAttackExceptionPackage(
-                                            "attack invalid"
+                                            response
                                         )
                                     )
                                     continue
@@ -458,7 +462,7 @@ class GameLoop:
             if not isinstance(response, durak_server.packages.PlayerAttackPackage):
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
-                        "attack invalid"
+                        "Package is not related to player attack!"
                     )
                 )
                 continue
@@ -466,10 +470,11 @@ class GameLoop:
             attack_card_list = [
                 self.get_card_by_id(card_int) for card_int in response.cards
             ]
-            if not self.is_attack_valid(self._designated_defender, attack_card_list):
+            is_valid, response = self.is_attack_valid(self._designated_defender, attack_card_list)
+            if not is_valid:
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
-                        "attack invalid"
+                        response
                     )
                 )
                 continue
