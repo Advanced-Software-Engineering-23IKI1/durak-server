@@ -5,6 +5,7 @@ from durak_server.game.card import Card
 from random import shuffle
 import itertools
 from enum import Enum
+from durak_server import CONFIG
 import time
 from durak_server.server_logging import SessionLogger
 from durak_server._typing import GamePackage
@@ -14,7 +15,7 @@ from durak_server.player import PlayerGameStatus
 from durak_server.game_state import GameState
 
 # hardcoding for now -> file based config later
-GRACE_PERIOD = 60  # number of turns to wait before defense state is resolved (time~period*loop_wait)
+GRACE_PERIOD = int(CONFIG.get("game", "GRACE_PERIOD"))# number of turns to wait before defense state is resolved (time~period*loop_wait)
 
 class DefenseState(Enum):
     NONE = -1,
