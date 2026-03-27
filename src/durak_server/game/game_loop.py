@@ -127,7 +127,9 @@ class GameLoop:
             if card.id == id:
                 return card
 
-    def is_attack_valid(self, target: Player, attacking_cards: list[Card]) -> (bool, str):
+    def is_attack_valid(
+        self, target: Player, attacking_cards: list[Card]
+    ) -> tuple[bool, str]:
         """check whether an attack is valid 
         #! does not perform the actual attack!
 
@@ -140,6 +142,13 @@ class GameLoop:
         """
 
         base_msg = f"Attack on {target.name} (id={target.player_id}) using {attacking_cards} failed on"
+
+        if not attacking_cards or any(card is None for card in attacking_cards):
+            error_message = (
+                f"Attack on {target.name} failed on invalid or unknown card id."
+            )
+            self._logger.warning(base_msg + " invalid card id.")
+            return (False, error_message)
 
         # only 1 card type
         if len(set([card.value for card in attacking_cards])) > 1:
@@ -330,10 +339,22 @@ class GameLoop:
 
                     match received_package:
                         case durak_server.packages.PlayerAttackPackage():
+                            attack_card_ids = received_package.cards
                             attack_cards = [
                                 self.get_card_by_id(card_int)
-                                for card_int in received_package.cards
+                                for card_int in attack_card_ids
                             ]
+                            if any(card is None for card in attack_cards):
+                                self._logger.warning(
+                                    f"Received invalid PlayerAttackPackage from {player.name} "
+                                    f"(id={player.player_id}): unknown card ids {attack_card_ids}"
+                                )
+                                player.send_package(
+                                    durak_server.packages.InvalidAttackExceptionPackage(
+                                        "attack contains unknown card id"
+                                    )
+                                )
+                                continue
                             if (
                                 player == self._designated_defender
                                 and not defense_started
@@ -396,6 +417,13 @@ class GameLoop:
                                 defense_card = self.get_card_by_id(
                                     cardpair["defend_id"]
                                 )
+                                if attack_card is None or defense_card is None:
+                                    self._logger.warning(
+                                        f"Received invalid PlayerDefensePackage from {player.name} "
+                                        f"(id={player.player_id}): unknown card ids "
+                                        f"attack_id={cardpair.get('attack_id')}, defend_id={cardpair.get('defend_id')}"
+                                    )
+                                    continue
                                 if not self.is_defense_valid(attack_card, defense_card):
                                     self._logger.debug(
                                         f"Defending {attack_card} using {defense_card} failed."
@@ -468,9 +496,21 @@ class GameLoop:
                 )
                 continue
 
+            attack_card_ids = response.cards
             attack_card_list = [
-                self.get_card_by_id(card_int) for card_int in response.cards
+                self.get_card_by_id(card_int) for card_int in attack_card_ids
             ]
+            if any(card is None for card in attack_card_list):
+                self._logger.warning(
+                    f"Received invalid PlayerAttackPackage from {attacker.name} "
+                    f"(id={attacker.player_id}): unknown card ids {attack_card_ids}"
+                )
+                attacker.send_package(
+                    durak_server.packages.InvalidAttackExceptionPackage(
+                        "attack contains unknown card id"
+                    )
+                )
+                continue
             is_valid, response = self.is_attack_valid(self._designated_defender, attack_card_list)
             if not is_valid:
                 attacker.send_package(
@@ -496,7 +536,7 @@ class GameLoop:
         self.inner_loop()
         self._logger.debug("Turn finished.")
 
-    def _get_cardgroup_idx(self, s_card: Card) -> int:
+    def _get_cardgroup_idx(self, s_card: Card) -> int | None:
         """get index of the cardgroup that s_card is a member of
 
         Args:
@@ -521,12 +561,21 @@ class GameLoop:
         Returns:
             bool: flag
         """
-        if not self._get_cardgroup_idx(attack_card) < self._get_cardgroup_idx(
-            defend_card
-        ):
+        if attack_card is None or defend_card is None:
             return False
-        
-        if not (attack_card.suit == defend_card.suit or defend_card.suit == self._game_config.trump):
+
+        attack_idx = self._get_cardgroup_idx(attack_card)
+        defend_idx = self._get_cardgroup_idx(defend_card)
+        if attack_idx is None or defend_idx is None:
+            return False
+
+        if not attack_idx < defend_idx:
+            return False
+
+        if not (
+            attack_card.suit == defend_card.suit
+            or defend_card.suit == self._game_config.trump
+        ):
             return False
 
         return True
