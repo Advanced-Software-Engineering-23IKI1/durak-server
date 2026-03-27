@@ -138,16 +138,15 @@ class GameLoop:
         Returns:
             (bool, str): validity, error message
         """
-        base_msg = f"Attack on {target.name} (id={target.player_id}) using {attacking_cards} failed on"
 
         # only 1 card type
         if len(set([card.value for card in attacking_cards])) > 1:
-            error_message = base_msg + " unique card type."
+            error_message = f"Attack on {target.name} failed on"  + " unique card type."
             self._logger.debug(error_message)
             return (False, error_message)
         # enough cards left for attack
         if len(target.hand) < len(attacking_cards) + len([attack["defend_card"] for attack in self._attack_buffer if attack["defend_card"] is None]):
-            error_message = base_msg + " remaining attack card count."
+            error_message = f"Attack on {target.name} failed on" + " remaining attack card count."
             self._logger.debug(error_message)
             return (False, error_message)
         
@@ -160,7 +159,7 @@ class GameLoop:
         if not (
             len(self._attack_buffer) == 0 or attacking_cards[0].value in valid_values
         ):
-            error_message = base_msg + " card type present or initial."
+            error_message = f"Attack on {target.name} failed on" + " card type present or initial."
             self._logger.debug(error_message)
             return (False, error_message)
         return (True, "")
