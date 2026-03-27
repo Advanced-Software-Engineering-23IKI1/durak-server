@@ -18,10 +18,10 @@ GRACE_PERIOD = 60  # number of turns to wait before defense state is resolved (t
 
 
 class DefenseState(Enum):
-    NONE = (-1,)
-    DEFENDING = (0,)
-    GRACE_PERIOD = (1,)
-    RESOLVED = (2,)
+    NONE = -1,
+    DEFENDING = 0,
+    GRACE_PERIOD = 1,
+    RESOLVED = 2,
 
 
 class GameLoop:
