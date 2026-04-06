@@ -1,0 +1,275 @@
+time="2026-04-06T17:38:42+02:00" level=warning msg="Docker Compose requires buildx plugin to be installed"
+ Image durak-server-integration_tests Building 
+ Image durak-server-integration_tests Building 
+Sending build context to Docker daemon  44.67kB
+Step 1/9 : FROM python:3.12-slim
+ ---> ccc7089399c8
+Step 2/9 : WORKDIR /app
+ ---> Using cache
+ ---> 08aba939c7ca
+Step 3/9 : COPY requirements.txt .
+ ---> Using cache
+ ---> ee7bea1f2da4
+Step 4/9 : COPY src ./src
+ ---> Using cache
+ ---> cc30aa524a9b
+Step 5/9 : COPY config.ini .
+ ---> 159e7971368e
+Step 6/9 : COPY tests ./tests
+ ---> 1229b10d9509
+Step 7/9 : RUN python3 -m pip install -r requirements.txt
+ ---> Running in ab849376bbb3
+Collecting coverage (from -r requirements.txt (line 1))
+  Downloading coverage-7.13.5-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl.metadata (8.5 kB)
+Collecting prompt_toolkit (from -r requirements.txt (line 2))
+  Downloading prompt_toolkit-3.0.52-py3-none-any.whl.metadata (6.4 kB)
+Collecting wcwidth (from prompt_toolkit->-r requirements.txt (line 2))
+  Downloading wcwidth-0.6.0-py3-none-any.whl.metadata (30 kB)
+Downloading coverage-7.13.5-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl (254 kB)
+Downloading prompt_toolkit-3.0.52-py3-none-any.whl (391 kB)
+Downloading wcwidth-0.6.0-py3-none-any.whl (94 kB)
+Installing collected packages: wcwidth, coverage, prompt_toolkit
+Successfully installed coverage-7.13.5 prompt_toolkit-3.0.52 wcwidth-0.6.0
+[91mWARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+[0m[91m
+[notice] A new release of pip is available: 25.0.1 -> 26.0.1
+[notice] To update, run: pip install --upgrade pip
+[0m ---> Removed intermediate container ab849376bbb3
+ ---> 872ef17f8dae
+Step 8/9 : CMD ["python3", "src/main.py"]
+ ---> Running in c84824d77724
+ ---> Removed intermediate container c84824d77724
+ ---> a5a7c27676f1
+Step 9/9 : LABEL com.docker.compose.image.builder=classic
+ ---> Running in 93c0d3ee32d7
+ ---> Removed intermediate container 93c0d3ee32d7
+ ---> 36872aba932b
+Successfully built 36872aba932b
+Successfully tagged durak-server-integration_tests:latest
+ Image durak-server-integration_tests Built 
+ Image durak-server-integration_tests Built 
+ Container durak_server_integration_tests Recreate 
+ Container durak_server_integration_tests Recreated 
+Attaching to durak_server_integration_tests
+ Container durak_server_integration_tests Starting 
+ Container durak_server_integration_tests Started 
+durak_server_integration_tests  | [2026-04-06 15:38:55.672] [INFO] [source=Server] Server listening on [127.0.0.1:65432]
+durak_server_integration_tests  | test_001_invalid_string (test_basic_connection.TestBasicConnection.test_001_invalid_string)
+durak_server_integration_tests  | test sending a non-valid string ... [2026-04-06 15:38:56.676] [INFO] [source=Server] Handling new client from [('127.0.0.1', 43084)]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_002_invalid_package_json (test_basic_connection.TestBasicConnection.test_002_invalid_package_json)
+durak_server_integration_tests  | test with valid JSON but invalid package ... ok
+durak_server_integration_tests  | test_003_invalid_package_type (test_basic_connection.TestBasicConnection.test_003_invalid_package_type)
+durak_server_integration_tests  | test with valid JSON with nonexistent package type ... ok
+durak_server_integration_tests  | test_004_invalid_body (test_basic_connection.TestBasicConnection.test_004_invalid_body)
+durak_server_integration_tests  | test with valid JSON with nonexistent package type ... ok
+durak_server_integration_tests  | test_005_client_present_in_player_list (test_basic_connection.TestBasicConnection.test_005_client_present_in_player_list)
+durak_server_integration_tests  | check if the client is correctly added to the server player list ... ok
+durak_server_integration_tests  | test_006_client_disconnect_detected (test_basic_connection.TestBasicConnection.test_006_client_disconnect_detected)
+durak_server_integration_tests  | check if client disconnects are handled correctly ... [2026-04-06 15:38:58.743] [INFO] [source=Server] Handling new client from [('127.0.0.1', 43090)]
+durak_server_integration_tests  | [2026-04-06 15:38:59.014] [INFO] [source=Player(name=None, session=None, ip=127.0.0.1, port=43090)] lost connection
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_001_config_on_session_creation (test_config.TestConfigHandling.test_001_config_on_session_creation)
+durak_server_integration_tests  | test sending config on the initial lobby creation ... [2026-04-06 15:39:00.022] [INFO] [source=Player(name=None, session=None, ip=127.0.0.1, port=43084)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:00.759] [INFO] [source=Server] Handling new client from [('127.0.0.1', 43092)]
+durak_server_integration_tests  | [2026-04-06 15:39:01.149] [INFO] [source=Session(gamecode=ceug)] Session [ceug] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:01.150] [INFO] [source=Server] Created new game session with code [ceug]
+durak_server_integration_tests  | [2026-04-06 15:39:01.151] [INFO] [source=Session(gamecode=ceug)] player_1 [('127.0.0.1', 43092)] joined Session [ceug]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_002_config_on_session_join (test_config.TestConfigHandling.test_002_config_on_session_join)
+durak_server_integration_tests  | test sending config on the initial lobby creation ... [2026-04-06 15:39:01.770] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46544)]
+durak_server_integration_tests  | [2026-04-06 15:39:01.930] [INFO] [source=Session(gamecode=ruqf)] Session [ruqf] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:01.930] [INFO] [source=Server] Created new game session with code [ruqf]
+durak_server_integration_tests  | [2026-04-06 15:39:01.931] [INFO] [source=Session(gamecode=ruqf)] player_1 [('127.0.0.1', 46544)] joined Session [ruqf]
+durak_server_integration_tests  | [2026-04-06 15:39:02.171] [INFO] [source=Player(name=player_1, session=ceug, ip=127.0.0.1, port=43092)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:02.584] [INFO] [source=Session(gamecode=ceug)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:02.588] [INFO] [source=Session(gamecode=ceug)] Cleaning up game session ceug
+durak_server_integration_tests  | [2026-04-06 15:39:02.784] [INFO] [source=Server] Deleted game session with code [ceug]
+durak_server_integration_tests  | [2026-04-06 15:39:02.787] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46550)]
+durak_server_integration_tests  | [2026-04-06 15:39:02.982] [INFO] [source=Session(gamecode=ruqf)] player_2 [('127.0.0.1', 46550)] joined Session [ruqf]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_003_permission_lobby_join (test_config.TestConfigHandling.test_003_permission_lobby_join)
+durak_server_integration_tests  | test if the permission is checked when trying to change the GameConfig ... [2026-04-06 15:39:03.242] [INFO] [source=Player(name=player_1, session=ruqf, ip=127.0.0.1, port=46544)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:03.249] [INFO] [source=Player(name=player_2, session=ruqf, ip=127.0.0.1, port=46550)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:03.679] [INFO] [source=Session(gamecode=ruqf)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:03.680] [INFO] [source=Session(gamecode=ruqf)] Cleaning up game session ruqf
+durak_server_integration_tests  | [2026-04-06 15:39:03.807] [INFO] [source=Server] Deleted game session with code [ruqf]
+durak_server_integration_tests  | [2026-04-06 15:39:03.810] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46566)]
+durak_server_integration_tests  | [2026-04-06 15:39:04.023] [INFO] [source=Session(gamecode=bhax)] Session [bhax] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:04.023] [INFO] [source=Server] Created new game session with code [bhax]
+durak_server_integration_tests  | [2026-04-06 15:39:04.030] [INFO] [source=Session(gamecode=bhax)] player_1 [('127.0.0.1', 46566)] joined Session [bhax]
+durak_server_integration_tests  | [2026-04-06 15:39:04.892] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46574)]
+durak_server_integration_tests  | [2026-04-06 15:39:05.093] [INFO] [source=Session(gamecode=bhax)] player_2 [('127.0.0.1', 46574)] joined Session [bhax]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_004_change_config_in_lobby (test_config.TestConfigHandling.test_004_change_config_in_lobby)
+durak_server_integration_tests  | test changing the config while in the lobby ... [2026-04-06 15:39:05.342] [INFO] [source=Player(name=player_1, session=bhax, ip=127.0.0.1, port=46566)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:05.361] [INFO] [source=Player(name=player_2, session=bhax, ip=127.0.0.1, port=46574)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:05.794] [INFO] [source=Session(gamecode=bhax)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:05.798] [INFO] [source=Session(gamecode=bhax)] Cleaning up game session bhax
+durak_server_integration_tests  | [2026-04-06 15:39:05.941] [INFO] [source=Server] Deleted game session with code [bhax]
+durak_server_integration_tests  | [2026-04-06 15:39:05.950] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46580)]
+durak_server_integration_tests  | [2026-04-06 15:39:06.155] [INFO] [source=Session(gamecode=qccs)] Session [qccs] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:06.155] [INFO] [source=Server] Created new game session with code [qccs]
+durak_server_integration_tests  | [2026-04-06 15:39:06.156] [INFO] [source=Session(gamecode=qccs)] player_1 [('127.0.0.1', 46580)] joined Session [qccs]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_005_dynamic_card_count_on_unknown_deck_raises (test_config.TestConfigHandling.test_005_dynamic_card_count_on_unknown_deck_raises)
+durak_server_integration_tests  | test if the server returns an exception when a user tries to use dynamic card count scaling on an unknown deck ... [2026-04-06 15:39:07.273] [INFO] [source=Player(name=player_1, session=qccs, ip=127.0.0.1, port=46580)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:07.680] [INFO] [source=Session(gamecode=qccs)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:07.680] [INFO] [source=Session(gamecode=qccs)] Cleaning up game session qccs
+durak_server_integration_tests  | [2026-04-06 15:39:07.953] [INFO] [source=Server] Deleted game session with code [qccs]
+durak_server_integration_tests  | [2026-04-06 15:39:07.955] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46584)]
+durak_server_integration_tests  | [2026-04-06 15:39:07.982] [INFO] [source=Session(gamecode=9gz8)] Session [9gz8] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:07.982] [INFO] [source=Server] Created new game session with code [9gz8]
+durak_server_integration_tests  | [2026-04-06 15:39:08.002] [INFO] [source=Session(gamecode=9gz8)] player_1 [('127.0.0.1', 46584)] joined Session [9gz8]
+durak_server_integration_tests  | [2026-04-06 15:39:08.994] [WARNING] [source=Session(gamecode=9gz8)] Deck Deck36 not possible with dynamic card count scaling
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_001_all_players_ready_starts_game (test_game_loop.TestGameStartRoutine.test_001_all_players_ready_starts_game)
+durak_server_integration_tests  | game should start once all players are ready ... [2026-04-06 15:39:09.094] [INFO] [source=Player(name=player_1, session=9gz8, ip=127.0.0.1, port=46584)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:09.195] [WARNING] [source=Session(gamecode=9gz8)] Deck Deck36 not possible with dynamic card count scaling
+durak_server_integration_tests  | [2026-04-06 15:39:09.497] [INFO] [source=Session(gamecode=9gz8)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:09.498] [INFO] [source=Session(gamecode=9gz8)] Cleaning up game session 9gz8
+durak_server_integration_tests  | [2026-04-06 15:39:09.975] [INFO] [source=Server] Deleted game session with code [9gz8]
+durak_server_integration_tests  | [2026-04-06 15:39:09.976] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46586)]
+durak_server_integration_tests  | [2026-04-06 15:39:09.978] [INFO] [source=Server] Handling new client from [('127.0.0.1', 46588)]
+durak_server_integration_tests  | [2026-04-06 15:39:10.036] [INFO] [source=Session(gamecode=gfe8)] Session [gfe8] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:10.036] [INFO] [source=Server] Created new game session with code [gfe8]
+durak_server_integration_tests  | [2026-04-06 15:39:10.037] [INFO] [source=Session(gamecode=gfe8)] player_1 [('127.0.0.1', 46586)] joined Session [gfe8]
+durak_server_integration_tests  | [2026-04-06 15:39:10.238] [INFO] [source=Session(gamecode=gfe8)] player_2 [('127.0.0.1', 46588)] joined Session [gfe8]
+durak_server_integration_tests  | [2026-04-06 15:39:11.340] [INFO] [source=Session(gamecode=gfe8)] Session [gfe8] switched state to running
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_002_game_does_not_start_if_not_everyone_ready (test_game_loop.TestGameStartRoutine.test_002_game_does_not_start_if_not_everyone_ready)
+durak_server_integration_tests  | game should not start while at least one player is not ready ... [2026-04-06 15:39:11.545] [INFO] [source=Player(name=player_1, session=gfe8, ip=127.0.0.1, port=46586)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:11.979] [INFO] [source=Server] Handling new client from [('127.0.0.1', 60552)]
+durak_server_integration_tests  | [2026-04-06 15:39:11.981] [INFO] [source=Server] Handling new client from [('127.0.0.1', 60556)]
+durak_server_integration_tests  | [2026-04-06 15:39:12.042] [INFO] [source=Session(gamecode=khvp)] Session [khvp] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:12.043] [INFO] [source=Server] Created new game session with code [khvp]
+durak_server_integration_tests  | [2026-04-06 15:39:12.043] [INFO] [source=Session(gamecode=khvp)] player_1 [('127.0.0.1', 60552)] joined Session [khvp]
+durak_server_integration_tests  | [2026-04-06 15:39:12.245] [INFO] [source=Session(gamecode=khvp)] player_2 [('127.0.0.1', 60556)] joined Session [khvp]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_003_game_start_routine_sends_player_hands_update (test_game_loop.TestGameStartRoutine.test_003_game_start_routine_sends_player_hands_update)
+durak_server_integration_tests  | after game start, each player should receive a hands update package ... [2026-04-06 15:39:16.460] [INFO] [source=Player(name=player_1, session=khvp, ip=127.0.0.1, port=60552)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:16.460] [INFO] [source=Player(name=player_2, session=khvp, ip=127.0.0.1, port=60556)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:16.862] [INFO] [source=Session(gamecode=khvp)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:16.863] [INFO] [source=Session(gamecode=khvp)] Cleaning up game session khvp
+durak_server_integration_tests  | [2026-04-06 15:39:16.983] [INFO] [source=Server] Deleted game session with code [khvp]
+durak_server_integration_tests  | [2026-04-06 15:39:16.984] [INFO] [source=Server] Handling new client from [('127.0.0.1', 60560)]
+durak_server_integration_tests  | [2026-04-06 15:39:16.985] [INFO] [source=Server] Handling new client from [('127.0.0.1', 60572)]
+durak_server_integration_tests  | [2026-04-06 15:39:17.053] [INFO] [source=Session(gamecode=dhc5)] Session [dhc5] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:17.053] [INFO] [source=Server] Created new game session with code [dhc5]
+durak_server_integration_tests  | [2026-04-06 15:39:17.054] [INFO] [source=Session(gamecode=dhc5)] player_1 [('127.0.0.1', 60560)] joined Session [dhc5]
+durak_server_integration_tests  | [2026-04-06 15:39:17.256] [INFO] [source=Session(gamecode=dhc5)] player_2 [('127.0.0.1', 60572)] joined Session [dhc5]
+durak_server_integration_tests  | [2026-04-06 15:39:18.356] [INFO] [source=Session(gamecode=dhc5)] Session [dhc5] switched state to running
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_004_game_start_routine_sets_single_attacker_status (test_game_loop.TestGameStartRoutine.test_004_game_start_routine_sets_single_attacker_status)
+durak_server_integration_tests  | player status update should contain exactly one attacker at game start ... [2026-04-06 15:39:18.459] [INFO] [source=Player(name=player_2, session=dhc5, ip=127.0.0.1, port=60572)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:18.987] [INFO] [source=Server] Handling new client from [('127.0.0.1', 60582)]
+durak_server_integration_tests  | [2026-04-06 15:39:18.988] [INFO] [source=Server] Handling new client from [('127.0.0.1', 60590)]
+durak_server_integration_tests  | [2026-04-06 15:39:19.060] [INFO] [source=Session(gamecode=ncv6)] Session [ncv6] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:19.060] [INFO] [source=Server] Created new game session with code [ncv6]
+durak_server_integration_tests  | [2026-04-06 15:39:19.061] [INFO] [source=Session(gamecode=ncv6)] player_1 [('127.0.0.1', 60582)] joined Session [ncv6]
+durak_server_integration_tests  | [2026-04-06 15:39:19.263] [INFO] [source=Session(gamecode=ncv6)] player_2 [('127.0.0.1', 60590)] joined Session [ncv6]
+durak_server_integration_tests  | [2026-04-06 15:39:20.363] [INFO] [source=Session(gamecode=ncv6)] Session [ncv6] switched state to running
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_005_game_start_routine_distributes_cards_consistently (test_game_loop.TestGameStartRoutine.test_005_game_start_routine_distributes_cards_consistently)
+durak_server_integration_tests  | card distribution metadata should be consistent between both players ... [2026-04-06 15:39:20.616] [INFO] [source=Player(name=player_2, session=ncv6, ip=127.0.0.1, port=60590)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:20.989] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40132)]
+durak_server_integration_tests  | [2026-04-06 15:39:20.991] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40140)]
+durak_server_integration_tests  | [2026-04-06 15:39:21.068] [INFO] [source=Session(gamecode=4f3g)] Session [4f3g] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:21.068] [INFO] [source=Server] Created new game session with code [4f3g]
+durak_server_integration_tests  | [2026-04-06 15:39:21.069] [INFO] [source=Session(gamecode=4f3g)] player_1 [('127.0.0.1', 40132)] joined Session [4f3g]
+durak_server_integration_tests  | [2026-04-06 15:39:21.270] [INFO] [source=Session(gamecode=4f3g)] player_2 [('127.0.0.1', 40140)] joined Session [4f3g]
+durak_server_integration_tests  | [2026-04-06 15:39:22.371] [INFO] [source=Session(gamecode=4f3g)] Session [4f3g] switched state to running
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_001_create_game_session (test_lobby.TestLobby.test_001_create_game_session)
+durak_server_integration_tests  | check if a new game session is created when the correct package is sent ... [2026-04-06 15:39:22.574] [INFO] [source=Player(name=player_2, session=4f3g, ip=127.0.0.1, port=40140)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:23.003] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40146)]
+durak_server_integration_tests  | [2026-04-06 15:39:23.089] [INFO] [source=Session(gamecode=s9kz)] Session [s9kz] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:23.089] [INFO] [source=Server] Created new game session with code [s9kz]
+durak_server_integration_tests  | [2026-04-06 15:39:23.092] [INFO] [source=Session(gamecode=s9kz)] player_1 [('127.0.0.1', 40146)] joined Session [s9kz]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_002_join_game_session (test_lobby.TestLobby.test_002_join_game_session)
+durak_server_integration_tests  | test joining a game session ... [2026-04-06 15:39:24.014] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40154)]
+durak_server_integration_tests  | [2026-04-06 15:39:24.097] [INFO] [source=Player(name=player_1, session=s9kz, ip=127.0.0.1, port=40146)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:24.121] [INFO] [source=Session(gamecode=63ng)] Session [63ng] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:24.121] [INFO] [source=Server] Created new game session with code [63ng]
+durak_server_integration_tests  | [2026-04-06 15:39:24.138] [INFO] [source=Session(gamecode=63ng)] player_1 [('127.0.0.1', 40154)] joined Session [63ng]
+durak_server_integration_tests  | [2026-04-06 15:39:24.529] [INFO] [source=Session(gamecode=s9kz)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:24.532] [INFO] [source=Session(gamecode=s9kz)] Cleaning up game session s9kz
+durak_server_integration_tests  | [2026-04-06 15:39:25.020] [INFO] [source=Server] Deleted game session with code [s9kz]
+durak_server_integration_tests  | [2026-04-06 15:39:25.036] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40156)]
+durak_server_integration_tests  | [2026-04-06 15:39:25.167] [INFO] [source=Session(gamecode=63ng)] player_2 [('127.0.0.1', 40156)] joined Session [63ng]
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | test_003_lobby_updates_on_player_disconnect (test_lobby.TestLobby.test_003_lobby_updates_on_player_disconnect)
+durak_server_integration_tests  | test if a lobby correctly removes a player if he disconnects ... [2026-04-06 15:39:25.254] [INFO] [source=Player(name=player_2, session=63ng, ip=127.0.0.1, port=40156)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:25.343] [INFO] [source=Player(name=player_1, session=63ng, ip=127.0.0.1, port=40154)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:25.777] [INFO] [source=Session(gamecode=63ng)] GameSession with 0 players detected.
+durak_server_integration_tests  | [2026-04-06 15:39:25.779] [INFO] [source=Session(gamecode=63ng)] Cleaning up game session 63ng
+durak_server_integration_tests  | [2026-04-06 15:39:26.076] [INFO] [source=Server] Deleted game session with code [63ng]
+durak_server_integration_tests  | [2026-04-06 15:39:26.086] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40158)]
+durak_server_integration_tests  | [2026-04-06 15:39:26.192] [INFO] [source=Session(gamecode=bjbn)] Session [bjbn] is waiting for players to join...
+durak_server_integration_tests  | [2026-04-06 15:39:26.192] [INFO] [source=Server] Created new game session with code [bjbn]
+durak_server_integration_tests  | [2026-04-06 15:39:26.216] [INFO] [source=Session(gamecode=bjbn)] player_1 [('127.0.0.1', 40158)] joined Session [bjbn]
+durak_server_integration_tests  | [2026-04-06 15:39:27.144] [INFO] [source=Server] Handling new client from [('127.0.0.1', 40172)]
+durak_server_integration_tests  | [2026-04-06 15:39:27.289] [INFO] [source=Session(gamecode=bjbn)] player_2 [('127.0.0.1', 40172)] joined Session [bjbn]
+durak_server_integration_tests  | [2026-04-06 15:39:27.359] [INFO] [source=Player(name=player_2, session=bjbn, ip=127.0.0.1, port=40172)] lost connection
+durak_server_integration_tests  | ok
+durak_server_integration_tests  | 
+durak_server_integration_tests  | ----------------------------------------------------------------------
+durak_server_integration_tests  | Ran 19 tests in 31.789s
+durak_server_integration_tests  | 
+durak_server_integration_tests  | OK
+durak_server_integration_tests  | [2026-04-06 15:39:27.491] [INFO] [source=Server] Stopping server ...
+durak_server_integration_tests  | [2026-04-06 15:39:27.492] [INFO] [source=Server] Killing game session [gfe8]...
+durak_server_integration_tests  | [2026-04-06 15:39:27.512] [INFO] [source=Session(gamecode=gfe8)] Cleaning up game session gfe8
+durak_server_integration_tests  | [2026-04-06 15:39:27.559] [INFO] [source=Server] Killing game session [dhc5]...
+durak_server_integration_tests  | [2026-04-06 15:39:27.560] [INFO] [source=Player(name=player_1, session=bjbn, ip=127.0.0.1, port=40158)] lost connection
+durak_server_integration_tests  | [2026-04-06 15:39:27.597] [INFO] [source=Session(gamecode=dhc5)] Cleaning up game session dhc5
+durak_server_integration_tests  | [2026-04-06 15:39:27.631] [INFO] [source=Server] Killing game session [ncv6]...
+durak_server_integration_tests  | [2026-04-06 15:39:27.660] [INFO] [source=Session(gamecode=ncv6)] Cleaning up game session ncv6
+durak_server_integration_tests  | [2026-04-06 15:39:27.689] [INFO] [source=Server] Killing game session [4f3g]...
+durak_server_integration_tests  | [2026-04-06 15:39:27.691] [INFO] [source=Session(gamecode=4f3g)] Cleaning up game session 4f3g
+durak_server_integration_tests  | [2026-04-06 15:39:27.791] [INFO] [source=Server] Killing game session [bjbn]...
+durak_server_integration_tests  | [2026-04-06 15:39:27.862] [INFO] [source=Session(gamecode=bjbn)] Cleaning up game session bjbn
+durak_server_integration_tests  | [2026-04-06 15:39:27.862] [INFO] [source=Server] Killing main tcp server ...
+durak_server_integration_tests  | [2026-04-06 15:39:27.863] [INFO] [source=Server] Server shutdown successfull.
+durak_server_integration_tests  | [2026-04-06 15:39:28.222] [INFO] [source=Server] Deleted game session with code [gfe8]
+durak_server_integration_tests  | [2026-04-06 15:39:28.223] [INFO] [source=Server] Deleted game session with code [dhc5]
+durak_server_integration_tests  | [2026-04-06 15:39:28.224] [INFO] [source=Server] Deleted game session with code [ncv6]
+durak_server_integration_tests  | [2026-04-06 15:39:28.225] [INFO] [source=Server] Deleted game session with code [4f3g]
+durak_server_integration_tests  | [2026-04-06 15:39:28.225] [INFO] [source=Server] Deleted game session with code [bjbn]
+durak_server_integration_tests  | Name                                                           Stmts   Miss  Cover
+durak_server_integration_tests  | ----------------------------------------------------------------------------------
+durak_server_integration_tests  | src/durak_server/config/game_config.py                            46     20    57%
+durak_server_integration_tests  | src/durak_server/exceptions.py                                    12      7    42%
+durak_server_integration_tests  | src/durak_server/game/card.py                                     77     59    23%
+durak_server_integration_tests  | src/durak_server/game/drawpile.py                                 37     17    54%
+durak_server_integration_tests  | src/durak_server/game/game_loop.py                               281    235    16%
+durak_server_integration_tests  | src/durak_server/game_code.py                                     17     12    29%
+durak_server_integration_tests  | src/durak_server/game_session.py                                 156     51    67%
+durak_server_integration_tests  | src/durak_server/packages/base.py                                 20     18    10%
+durak_server_integration_tests  | src/durak_server/packages/connect_to_game_session_package.py      18     11    39%
+durak_server_integration_tests  | src/durak_server/packages/decoder.py                              18      5    72%
+durak_server_integration_tests  | src/durak_server/packages/exception_package.py                    82     56    32%
+durak_server_integration_tests  | src/durak_server/packages/game_config_package.py                  68     46    32%
+durak_server_integration_tests  | src/durak_server/packages/game_start_package.py                   10      8    20%
+durak_server_integration_tests  | src/durak_server/packages/lobby_join_confirmation_package.py      13     10    23%
+durak_server_integration_tests  | src/durak_server/packages/lobby_status_package.py                 24     15    38%
+durak_server_integration_tests  | src/durak_server/packages/player_hands_update_package.py          36     22    39%
+durak_server_integration_tests  | src/durak_server/packages/player_status_package.py                26     15    42%
+durak_server_integration_tests  | src/durak_server/packages/start_game_session_package.py           13      9    31%
+durak_server_integration_tests  | src/durak_server/packages/status_update_package.py                13      9    31%
+durak_server_integration_tests  | src/durak_server/packages/user_game_config_package.py             55     32    42%
+durak_server_integration_tests  | src/durak_server/player.py                                        90     55    39%
+durak_server_integration_tests  | src/durak_server/server_logging.py                                57     39    32%
+durak_server_integration_tests  | src/durak_server/tcp_client.py                                   105     28    73%
+durak_server_integration_tests  | src/durak_server/tcp_server.py                                    98     29    70%
+durak_server_integration_tests  | tests/integration/server_setup.py                                 26     16    38%
+durak_server_integration_tests  | tests/integration/test_basic_connection.py                        62      0   100%
+durak_server_integration_tests  | tests/integration/test_config.py                                  96      1    99%
+durak_server_integration_tests  | tests/integration/test_game_loop.py                              151      7    95%
+durak_server_integration_tests  | tests/integration/test_lobby.py                                   83      2    98%
+durak_server_integration_tests  | tests/tcp_test_client.py                                          83     21    75%
+durak_server_integration_tests  | tests/utils/logging.py                                            19      0   100%
+durak_server_integration_tests  | ----------------------------------------------------------------------------------
+durak_server_integration_tests  | TOTAL                                                           1892    855    55%
+[Kdurak_server_integration_tests exited with code 0
