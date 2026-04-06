@@ -5,6 +5,7 @@ from durak_server.game.card import Card
 from random import shuffle
 import itertools
 from enum import Enum
+from durak_server import CONFIG
 import time
 from durak_server.server_logging import SessionLogger
 from durak_server._typing import GamePackage
@@ -13,8 +14,7 @@ import durak_server.packages
 from durak_server.player import PlayerGameStatus
 from durak_server.game_state import GameState
 
-# hardcoding for now -> file based config later
-GRACE_PERIOD = 60  # number of turns to wait before defense state is resolved (time~period*loop_wait)
+DEFEND_GRACE_PERIOD = int(float(CONFIG.get("game", "DEFEND_GRACE_PERIOD")[:-1])) # number of turns to wait before defense state is resolved (time~period*loop_wait)
 
 
 class DefenseState(Enum):
@@ -468,9 +468,9 @@ class GameLoop:
                                 defense_state = DefenseState.DEFENDING
                                 processed_any = True
             if not processed_any:
-                if defense_state == DefenseState.GRACE_PERIOD:
+                if defense_state == DefenseState.DEFEND_GRACE_PERIOD:
                     defense_grace_counter += 1
-                    if defense_grace_counter == GRACE_PERIOD:
+                    if defense_grace_counter == DEFEND_GRACE_PERIOD:
                         defense_state = DefenseState.RESOLVED
                 if defense_state == DefenseState.RESOLVED:
                     self._attack_buffer.clear()
@@ -482,7 +482,7 @@ class GameLoop:
                 time.sleep(0.05)
             else:
                 if self.is_defense_complete():
-                    defense_state = DefenseState.GRACE_PERIOD
+                    defense_state = DefenseState.DEFEND_GRACE_PERIOD
                 elif defense_started:
                     defense_state = DefenseState.DEFENDING
                     defense_grace_counter = 0

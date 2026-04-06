@@ -4,6 +4,7 @@ from durak_server.tcp_client import TcpClient
 from durak_server.game_session import GameSession
 from durak_server.game_state import GameState
 from threading import Thread
+from durak_server import CONFIG
 import time
 import signal
 import socket
@@ -80,7 +81,7 @@ class TcpServer:
                     player.name = package.playername
                     session = self.create_game_session()
                     player.gamecode = session.code
-                    player.can_modify_config = True
+                    player.can_modify_config = bool(CONFIG.get("server", "CONFIG_CAN_BE_MODIFIED"))
                     session.add_player(player)
                     self.players.remove(player)
                 elif isinstance(package, ConnectToGameSessionPackage):
@@ -147,7 +148,6 @@ class TcpServer:
 
 
 if __name__ == "__main__":
-    from durak_server import CONFIG
     host = CONFIG.get("server", "HOST")
     port = int(CONFIG.get("server", "PORT").strip() or "0")
 

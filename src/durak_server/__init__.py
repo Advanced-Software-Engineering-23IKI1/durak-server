@@ -1,11 +1,11 @@
 from pathlib import Path
 from configparser import ConfigParser
 
-__here = Path(__file__).parent
+__config_path = Path(__file__).parent.parent.parent
 
 # read config
 CONFIG = ConfigParser()
-CONFIG.read(__here / "config.ini")
+CONFIG.read(__config_path / "config.ini")
 
 import durak_server.packages
 import durak_server.tcp_client
