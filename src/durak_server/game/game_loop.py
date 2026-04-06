@@ -16,11 +16,13 @@ from durak_server.game_state import GameState
 
 DEFEND_GRACE_PERIOD = int(float(CONFIG.get("game", "DEFEND_GRACE_PERIOD")[:-1])) # number of turns to wait before defense state is resolved (time~period*loop_wait)
 
+
 class DefenseState(Enum):
-    NONE = -1,
-    DEFENDING = 0,
-    DEFEND_GRACE_PERIOD = 1,
-    RESOLVED = 2,
+    NONE = (-1,)
+    DEFENDING = (0,)
+    GRACE_PERIOD = (1,)
+    RESOLVED = (2,)
+
 
 class GameLoop:
     def __init__(
@@ -34,9 +36,7 @@ class GameLoop:
         self._leaderboard = []
         self._attack_buffer = []  # list of dicts for the current attack
         # {"attack_card": attacking Card obj, "defend_card": defending Card obj, "from_player": Player obj that attacked}
-        self._attack_max = (
-            0  # max amount of cards valid for attacking (=initial defender hand count)
-        )
+
         self.draw_list = []
         self._cur_attacker_idx = 0
 
@@ -64,8 +64,7 @@ class GameLoop:
             player.send_package(package)
 
     def broadcast_player_hands_update(self):
-        """send the PlayerHandsUpdatePackage to all players
-        """
+        """send the PlayerHandsUpdatePackage to all players"""
         for player in self.players:
             player.send_package(
                 durak_server.packages.PlayerHandsUpdatePackage(
@@ -79,7 +78,9 @@ class GameLoop:
                         if other_player != player
                     ],
                     draw_pile=len(self._drawpile),
-                    trump=self._trump_card.id if not self._drawpile.is_depleted else None,
+                    trump=(
+                        self._trump_card.id if not self._drawpile.is_depleted else None
+                    ),
                     player_order=[p.player_id for p in self._players],
                 )
             )
@@ -102,8 +103,7 @@ class GameLoop:
         self.broadcast_player_hands_update()
 
     def broadcast_player_status(self):
-        """sending the player status package to all players
-        """
+        """sending the player status package to all players"""
         self.broadcast(
             durak_server.packages.PlayerStatusPackage(
                 statuses=[
@@ -127,7 +127,9 @@ class GameLoop:
             if card.id == id:
                 return card
 
-    def is_attack_valid(self, target: Player, attacking_cards: list[Card]) -> bool:
+    def is_attack_valid(
+        self, target: Player, attacking_cards: list[Card]
+    ) -> tuple[bool, str]:
         """check whether an attack is valid
         #! does not perform the actual attack!
 
@@ -136,18 +138,37 @@ class GameLoop:
             attacking_cards (list[Card]): list of attacking cards
 
         Returns:
-            bool
+            (bool, str): validity, error message
         """
+
         base_msg = f"Attack on {target.name} (id={target.player_id}) using {attacking_cards} failed on"
+
+        if not attacking_cards or any(card is None for card in attacking_cards):
+            error_message = (
+                f"Attack on {target.name} failed on invalid or unknown card id."
+            )
+            self._logger.warning(base_msg + " invalid card id.")
+            return (False, error_message)
 
         # only 1 card type
         if len(set([card.value for card in attacking_cards])) > 1:
+            error_message = f"Attack on {target.name} failed on" + " unique card type."
             self._logger.debug(base_msg + " unique card type.")
-            return False
+            return (False, error_message)
         # enough cards left for attack
-        if self._attack_max > len(attacking_cards) + len(self._attack_buffer):
+        if len(target.hand) < len(attacking_cards) + len(
+            [
+                attack["defend_card"]
+                for attack in self._attack_buffer
+                if attack["defend_card"] is None
+            ]
+        ):
+            error_message = (
+                f"Attack on {target.name} failed on" + " remaining attack card count."
+            )
             self._logger.debug(base_msg + " remaining attack card count.")
-            return False
+            return (False, error_message)
+
         # card value already attacking or initial attack
         valid_values = []
         for attack in self._attack_buffer:
@@ -157,9 +178,12 @@ class GameLoop:
         if not (
             len(self._attack_buffer) == 0 or attacking_cards[0].value in valid_values
         ):
+            error_message = (
+                f"Attack on {target.name} failed on" + " card type present or initial."
+            )
             self._logger.debug(base_msg + " card type present or initial.")
-            return False
-        return True
+            return (False, error_message)
+        return (True, "")
 
     def perform_attack(
         self, origin: Player, target: Player, attacking_cards: list[Card]
@@ -180,10 +204,12 @@ class GameLoop:
                     durak_server.packages.CardIdNotInPossessionExceptionPackage(card.id)
                 )
                 return False
-        success = True
         for card in attacking_cards:
             if not origin.remove_card(card):
-                success = False
+                self._logger.warning(
+                    f"Failed to remove card {card} from {origin.name}'s hand during attack"
+                )
+                return False
             self._attack_buffer.append(
                 {"attack_card": card, "defend_card": None, "from_player": origin}
             )
@@ -192,11 +218,10 @@ class GameLoop:
         )
         self.check_players_finished()
         self.update_info()
-        return success
+        return True
 
     def update_info(self):
-        """update player hands and table
-        """
+        """update player hands and table"""
         self.broadcast_player_hands_update()
         self.broadcast_table_update()
 
@@ -216,9 +241,13 @@ class GameLoop:
             )
         )
 
-    def check_players_finished(self) -> None:
+    def check_players_finished(self) -> int:
         """check if any players are finished playing
+
+        Returns:
+            int: number of players that have finished
         """
+        players_removed = 0
         for player in list(self._game_player_list):
             if len(player.hand) == 0:
                 if (
@@ -228,11 +257,12 @@ class GameLoop:
                     player.game_status = PlayerGameStatus.Finished
                     self._leaderboard.append(player)
                     self._game_player_list.remove(player)
+                    players_removed += 1
         self._check_game_end()
+        return players_removed
 
     def _check_game_end(self):
-        """check if the game has ended (only 1 or fewer players remaining)
-        """
+        """check if the game has ended (only 1 or fewer players remaining)"""
         if self.state != GameState.Running:
             return
 
@@ -269,7 +299,7 @@ class GameLoop:
                 return False
 
         # 3. check card limit of next player
-        if not len(cards) <= len(target.hand):
+        if len(cards) > len(target.hand):
             return False
 
         return True
@@ -318,13 +348,25 @@ class GameLoop:
                     received_package = player.read_package()
                     if received_package is None:
                         break
-                    
+
                     match received_package:
                         case durak_server.packages.PlayerAttackPackage():
+                            attack_card_ids = received_package.cards
                             attack_cards = [
                                 self.get_card_by_id(card_int)
-                                for card_int in received_package.cards
+                                for card_int in attack_card_ids
                             ]
+                            if any(card is None for card in attack_cards):
+                                self._logger.warning(
+                                    f"Received invalid PlayerAttackPackage from {player.name} "
+                                    f"(id={player.player_id}): unknown card ids {attack_card_ids}"
+                                )
+                                player.send_package(
+                                    durak_server.packages.InvalidAttackExceptionPackage(
+                                        "attack contains unknown card id"
+                                    )
+                                )
+                                continue
                             if (
                                 player == self._designated_defender
                                 and not defense_started
@@ -335,18 +377,20 @@ class GameLoop:
                                         % len(self._game_player_list)
                                     ],
                                 )
-                            ):
+                            ):  # forwarding branch
                                 if player not in self.draw_list:
                                     self.draw_list.append(player)
                                 self.forward(player, attack_cards)
                                 processed_any = True
-                            elif player != self._designated_defender:
-                                if not self.is_attack_valid(
+
+                            elif player != self._designated_defender:  # defense branch
+                                is_valid, response = self.is_attack_valid(
                                     self._designated_defender, attack_cards
-                                ):
+                                )
+                                if not is_valid:
                                     player.send_package(
                                         durak_server.packages.InvalidAttackExceptionPackage(
-                                            "attack invalid"
+                                            response
                                         )
                                     )
                                     continue
@@ -372,10 +416,10 @@ class GameLoop:
                                 ]
                                 self._designated_defender.hand.extend(cards_to_pickup)
                                 self._attack_buffer.clear()
-                                self.check_players_finished()
+                                players_finished = self.check_players_finished()
                                 pickup = True
                                 self._cur_attacker_idx = (
-                                    self._cur_attacker_idx + 2
+                                    self._cur_attacker_idx + 2 - players_finished
                                 ) % len(self._game_player_list)
 
                         case durak_server.packages.PlayerDefensePackage():
@@ -387,6 +431,26 @@ class GameLoop:
                                 defense_card = self.get_card_by_id(
                                     cardpair["defend_id"]
                                 )
+                                if attack_card is None or defense_card is None:
+                                    self._logger.warning(
+                                        f"Received invalid PlayerDefensePackage from {player.name} "
+                                        f"(id={player.player_id}): unknown card ids "
+                                        f"attack_id={cardpair.get('attack_id')}, defend_id={cardpair.get('defend_id')}"
+                                    )
+                                    continue
+                                if defense_card not in self._designated_defender.hand:
+                                    self._logger.warning(
+                                        f"Defense card {defense_card} not in {self._designated_defender.name}'s hand"
+                                    )
+                                    continue
+                                if any(
+                                    attack["defend_card"] == defense_card
+                                    for attack in self._attack_buffer
+                                ):
+                                    self._logger.warning(
+                                        f"Defense card {defense_card} already used in this round"
+                                    )
+                                    continue
                                 if not self.is_defense_valid(attack_card, defense_card):
                                     self._logger.debug(
                                         f"Defending {attack_card} using {defense_card} failed."
@@ -410,10 +474,10 @@ class GameLoop:
                         defense_state = DefenseState.RESOLVED
                 if defense_state == DefenseState.RESOLVED:
                     self._attack_buffer.clear()
-                    self._cur_attacker_idx = (
-                        self._cur_attacker_idx + 1
-                    ) % len(self._game_player_list)
                     self.check_players_finished()
+                    self._cur_attacker_idx = (self._cur_attacker_idx + 1) % len(
+                        self._game_player_list
+                    )
                     self.update_info()
                 time.sleep(0.05)
             else:
@@ -454,19 +518,32 @@ class GameLoop:
             if not isinstance(response, durak_server.packages.PlayerAttackPackage):
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
-                        "attack invalid"
+                        "Package is not related to player attack!"
                     )
                 )
                 continue
 
+            attack_card_ids = response.cards
             attack_card_list = [
-                self.get_card_by_id(card_int) for card_int in response.cards
+                self.get_card_by_id(card_int) for card_int in attack_card_ids
             ]
-            if not self.is_attack_valid(self._designated_defender, attack_card_list):
+            if any(card is None for card in attack_card_list):
+                self._logger.warning(
+                    f"Received invalid PlayerAttackPackage from {attacker.name} "
+                    f"(id={attacker.player_id}): unknown card ids {attack_card_ids}"
+                )
                 attacker.send_package(
                     durak_server.packages.InvalidAttackExceptionPackage(
-                        "attack invalid"
+                        "attack contains unknown card id"
                     )
+                )
+                continue
+            is_valid, response = self.is_attack_valid(
+                self._designated_defender, attack_card_list
+            )
+            if not is_valid:
+                attacker.send_package(
+                    durak_server.packages.InvalidAttackExceptionPackage(response)
                 )
                 continue
 
@@ -486,7 +563,7 @@ class GameLoop:
         self.inner_loop()
         self._logger.debug("Turn finished.")
 
-    def _get_cardgroup_idx(self, s_card: Card) -> int:
+    def _get_cardgroup_idx(self, s_card: Card) -> int | None:
         """get index of the cardgroup that s_card is a member of
 
         Args:
@@ -511,9 +588,24 @@ class GameLoop:
         Returns:
             bool: flag
         """
-        return self._get_cardgroup_idx(attack_card) < self._get_cardgroup_idx(
-            defend_card
-        )
+        if attack_card is None or defend_card is None:
+            return False
+
+        attack_idx = self._get_cardgroup_idx(attack_card)
+        defend_idx = self._get_cardgroup_idx(defend_card)
+        if attack_idx is None or defend_idx is None:
+            return False
+
+        if not attack_idx < defend_idx:
+            return False
+
+        if not (
+            attack_card.suit == defend_card.suit
+            or defend_card.suit == self._game_config.trump
+        ):
+            return False
+
+        return True
 
     def perform_defense(
         self, defender: Player, attack_card: Card, defend_card: Card
@@ -534,10 +626,16 @@ class GameLoop:
                     attack["defend_card"] is not None
                 ):  # prevent defending a card multiple times
                     return False
-                attack["defend_card"] = defend_card
-        success = defender.remove_card(defend_card)
-        self.check_players_finished()
-        return True
+                if defender.remove_card(defend_card):
+                    attack["defend_card"] = defend_card
+                    self.check_players_finished()
+                    return True
+                else:
+                    self._logger.warning(
+                        f"Failed to remove defense card {defend_card} from {defender.name}'s hand"
+                    )
+                    return False
+        return False
 
     def is_defense_complete(self) -> bool:
         """check if the attacking buffer is being completely defended
@@ -552,8 +650,7 @@ class GameLoop:
         )
 
     def redraw(self):
-        """redraw cards after finished turn
-        """
+        """redraw cards after finished turn"""
         if self._designated_defender in self.draw_list:
             # add defender as last redraw
             self.draw_list.remove(self._designated_defender)
@@ -565,10 +662,10 @@ class GameLoop:
                 )
         self.check_players_finished()
         self.update_info()
+        self.draw_list = []
 
     def loop(self):
-        """main game loop
-        """
+        """main game loop"""
         while self.state == GameState.Running:
             self.turn()
             if self.state != GameState.Running:
