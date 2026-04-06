@@ -24,6 +24,7 @@ class DefenseState(Enum):
     RESOLVED = (2,)
 
 
+
 class GameLoop:
     def __init__(
         self, game_config: GameConfig, players: list[Player], logger: SessionLogger

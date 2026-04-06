@@ -14,6 +14,7 @@ repo_root_dir = here.parent.parent
 sys.path.insert(0, os.path.join(repo_root_dir / "src"))
 from durak_server.packages import *
 from durak_server.game.card import CardValue
+from durak_server import CONFIG
 
 from tests.tcp_test_client import TcpTestClient
 from tests.integration import IP, PORT, skip_if_advanced, skip_unless_advanced
@@ -129,18 +130,25 @@ class TestConfigHandling(unittest.TestCase):
         client = TcpTestClient(IP, PORT)
         client.send_package(StartGameSessionPackage("player_1"))
 
+        
+        card_order = [
+                        CardValue.A,
+                        CardValue.EIGHT,
+                        CardValue.NINE,
+                        CardValue.TEN,
+                        CardValue.J,
+                        CardValue.Q,
+                        CardValue.K,
+                        CardValue.SEVEN,
+                    ]
+
+        deck_type = eval(CONFIG.get("game", "DECK_TYPE"))
+        if type(deck_type) == type([]):
+            card_order = [deck_type[-1]] + deck_type[1:-1] + [deck_type[0]]
+                    
         client.send_package(
             UserGameConfigPackage(
-                card_order=[
-                    CardValue.A,
-                    CardValue.EIGHT,
-                    CardValue.NINE,
-                    CardValue.TEN,
-                    CardValue.J,
-                    CardValue.Q,
-                    CardValue.K,
-                    CardValue.SEVEN,
-                ],
+                card_order= card_order,
                 attack_forwarding={
                     "is-enabled": True,
                     "exact-count-match": False,
