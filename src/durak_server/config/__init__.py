@@ -3,6 +3,8 @@ from durak_server.game.card import CardValue, Deck52, Deck32, Deck_creator
 from durak_server.config.card_distribution import CARDCOUNT_MAPPING
 from durak_server import CONFIG
 
+deck_type = CONFIG.get("game", "DECK_TYPE")
+
 default_game_config = BasicGameConfig(
     attack_forwarding=bool(CONFIG.get("game", "ATTACK_FORWARDING")),
     attack_forwarding_exact_count_match=bool(CONFIG.get("game", "EXACT_COUNT_MATCH")),
@@ -10,13 +12,12 @@ default_game_config = BasicGameConfig(
     card_order=eval(CONFIG.get("game", "CARD_ORDER")),
 
     player_card_count=int(CONFIG.get("game", "PLAYER_CARD_COUNT")),
-    deck= {"52": Deck52(), "32": Deck32()}[CONFIG.get("game", "DECK_TYPE")]
-
-    deck_type = CONFIG.get("game", "DECK_TYPE")
-
     deck = {
         "52": Deck52(),
         "32": Deck32()
-    }.get(deck_type, Deck_creator(eval(deck_type)) if len(eval(deck_type)) % 4 == 0 else None)
+    }.get(
+          deck_type,
+          Deck_creator(eval(deck_type)) if type(eval(deck_type)) == type([]) and  len(eval(deck_type)) % 4 == 0 else None
+      )
 
 )
