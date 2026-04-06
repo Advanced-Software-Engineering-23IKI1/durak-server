@@ -17,7 +17,6 @@ from durak_server.game_state import GameState
 DEFEND_GRACE_PERIOD = int(float(CONFIG.get("game", "DEFEND_GRACE_PERIOD")[:-1])) # number of turns to wait before defense state is resolved (time~period*loop_wait)
 
 
-
 class DefenseState(Enum):
     NONE = (-1,)
     DEFENDING = (0,)
