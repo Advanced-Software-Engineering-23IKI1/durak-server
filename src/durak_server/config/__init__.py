@@ -16,8 +16,7 @@ default_game_config = BasicGameConfig(
 
     deck = {
         "52": Deck52(),
-        "32": Deck32(),
-        "36": Deck36()
+        "32": Deck32()
     }.get(deck_type, Deck_creator(eval(deck_type)) if len(eval(deck_type)) % 4 == 0 else None)
 
 )
